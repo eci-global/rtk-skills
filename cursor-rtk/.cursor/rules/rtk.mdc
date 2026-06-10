@@ -1,0 +1,28 @@
+---
+description: ECI token-reduction policy — run terminal commands through RTK so command output doesn't flood the context window
+globs:
+alwaysApply: true
+---
+
+# RTK Token Reduction (ECI)
+
+This repo uses RTK (Rust Token Killer) to cut LLM token consumption 60-90% on terminal command output. Verbose CLI output (passing tests, git boilerplate, directory noise) wastes context budget that should go to reasoning.
+
+## Terminal commands
+
+- If the RTK hook is installed, commands are rewritten automatically — run them normally.
+- **Native Windows:** auto-rewrite hook is unavailable — always prefix commands with `rtk` (see below).
+- If output looks raw/verbose (hook absent or Windows native), prefix explicitly: `rtk git status`, `rtk git diff`, `rtk grep <pattern> .`, `rtk ls`, `rtk read <file>`.
+- Tests: run via `rtk test <command>` (or `rtk jest` / `rtk vitest` / `rtk pytest`) — failures only.
+- Unknown/uncovered commands with long output: `rtk err <cmd>` (errors only) or `rtk summary <cmd>`.
+
+## When detail is missing
+
+- After a **failed** command, RTK prints a tee log path — read that file instead of re-running (Linux/macOS/WSL: `~/.local/share/rtk/tee/`; Windows: `%LOCALAPPDATA%\rtk\tee\`).
+- Need raw output once: `RTK_DISABLED=1 <command>`. Never suggest uninstalling RTK to work around one command.
+
+## Output hygiene
+
+Do not paste large raw command output into chat or files; reference the filtered summary or the tee log path. Repo-specific filter overrides live in `.rtk/filters.toml`.
+
+For savings reports, troubleshooting, or writing custom filters, see the `rtk-operations` rule.

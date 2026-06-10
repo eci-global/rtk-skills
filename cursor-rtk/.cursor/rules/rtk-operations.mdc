@@ -1,0 +1,51 @@
+---
+description: RTK operations — produce token-savings/ROI reports (rtk gain, discover, session), troubleshoot commands that misbehave under RTK filtering, manage exclusions and the kill switch, and author custom .rtk/filters.toml filters for niche toolchains (e.g., BBj/MarkSystems). Use when the user asks about RTK savings or token-reduction metrics, says RTK broke or hid a command's output, wants to exclude a command, write or tune a filter, set up RTK, or disable/uninstall RTK.
+globs:
+alwaysApply: false
+---
+
+# RTK Operations (ECI)
+
+Purpose: RTK was adopted to cut agent token spend 60-90% on CLI output. Protect that ROI in both directions — maximize coverage, and fix filter problems fast so developers don't disable RTK wholesale (a disabled RTK saves zero tokens).
+
+Authoritative docs (RTK releases fast — verify against these, not memory):
+- Docs: https://www.rtk-ai.app/docs/ · Config: /docs/getting-started/configuration/
+- Filter DSL: https://github.com/rtk-ai/rtk/blob/master/src/filters/README.md
+
+## Setup / adoption (if RTK is missing)
+
+**Install by platform:**
+- **macOS:** `brew install rtk`
+- **Linux / WSL:** `curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh`
+- **Windows (WSL — recommended):** install.sh inside WSL; init from WSL if agent shell is WSL
+- **Windows (native):** download `rtk-x86_64-pc-windows-msvc.zip` from GitHub releases → add `rtk.exe` to PATH; see adoption skill `references/windows.md`
+
+Verify with BOTH `rtk --version` and `rtk gain` (crates.io name-collision package also installs as `rtk`).
+
+1. Preview: `rtk init -g --agent cursor --dry-run -v` — prints every file it would patch, writes nothing.
+2. Apply: `rtk init -g --agent cursor` (hooks.json preToolUse rewrite), then restart Cursor. On **native Windows**, hook auto-rewrite is unavailable — committed `rtk.mdc` rules tell the agent to prefix `rtk` explicitly.
+3. ECI governance defaults in config.toml — Linux/WSL: `~/.config/rtk/config.toml`; macOS: `~/Library/Application Support/rtk/config.toml`; Windows: `%APPDATA%\rtk\config.toml` (create with `rtk config --create`). Set `[telemetry] enabled = false` (plus `RTK_TELEMETRY_DISABLED=1`), `[tee] mode = "failures"` (use `"never"` in sensitive repos), exclude interactive commands: `[hooks] exclude_commands = ["git rebase", "git cherry-pick", "docker exec", "^psql"]`.
+
+## Savings & ROI reporting
+
+- `rtk gain` (summary) · `--daily` / `--weekly` / `--graph` / `--history` (trends) · `--all --format json` (dashboard export).
+- `rtk discover --all --since 7` — commands that ran WITHOUT rtk = missed savings; triage by frequency × output size.
+- `rtk session` — adoption rate per agent session (Claude Code).
+- ROI statement = tokens saved × blended input-token price, plus context headroom (longer sessions before limits).
+
+## Troubleshooting ladder (least destructive first)
+
+1. Missing detail after a FAILED command → read the tee log path printed in the output.
+2. One-off raw output → `RTK_DISABLED=1 <cmd>`.
+3. Recurring problem command → add to `[hooks] exclude_commands`.
+4. Built-in filter too aggressive for this repo → override in `.rtk/filters.toml`.
+5. Isolation test → `rtk init --uninstall`, reproduce, re-enable; report the filter bug rather than abandoning RTK.
+6. Audit trail of hook rewrites → `RTK_HOOK_AUDIT=1`.
+
+Structural limit: the hook covers **shell/Bash tool calls only** — built-in Read/Grep/Glob and MCP tool outputs bypass RTK. Prefer `rtk read` / `rtk grep` or shell equivalents.
+
+## Custom filters (highest leverage at ECI)
+
+Scopes: global filters template (created by `rtk init`) vs repo `.rtk/filters.toml` (committed — preferred; behavior travels with the code). Niche toolchains (BBj/MarkSystems build/test output) have zero built-in coverage until a filter exists.
+
+Process: (1) fetch the current filter DSL README first — never write filter TOML from memory; (2) capture real success AND failure output samples; (3) keep what the agent needs (what changed, what failed, where), cut the rest; (4) validate signal preserved before committing. For uncovered commands with long output, try `rtk proxy <cmd>` (passthrough + tracking) before writing a filter. Safety rule: when in doubt, keep failure-path information and cut success-path verbosity.

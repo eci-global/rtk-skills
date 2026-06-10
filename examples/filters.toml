@@ -1,0 +1,18 @@
+# Example repo-level RTK filters — copy to .rtk/filters.toml and customize.
+#
+# Authoring process:
+#   1. Fetch current DSL: https://github.com/rtk-ai/rtk/blob/master/src/filters/README.md
+#   2. Capture real success + failure output samples from your toolchain
+#   3. Keep what the agent needs; cut boilerplate
+#   4. Validate: run command through rtk, confirm signal preserved on failure
+#
+# This file is a placeholder — replace with real filters for your stack.
+# BBj/MarkSystems and other niche toolchains need custom filters here.
+
+# Example structure (syntax may vary — always verify against live DSL README):
+#
+# [[filter]]
+# name = "my-build-tool"
+# match = ["mybuild", "mybuild test"]
+# keep_on_success = ["BUILD SUCCESS", "Summary:"]
+# drop_patterns = ["^\\[DEBUG\\]", "^Progress:"]
