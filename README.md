@@ -2,7 +2,7 @@
 
 Enterprise skills and rules for adopting [RTK (Rust Token Killer)](https://www.rtk-ai.app/) — cuts AI-agent token consumption 60–90% on CLI command output.
 
-RTK version pinned by this toolkit: **0.42.4** (see [`RTK_VERSION`](RTK_VERSION)). Cursor + Claude Code are supported as equal first-class targets.
+RTK version pinned by this toolkit: **0.43.0** (see [`RTK_VERSION`](RTK_VERSION)). Cursor + Claude Code are supported as equal first-class targets.
 
 ## Package layout
 
@@ -23,7 +23,7 @@ rtk-skills/
 │   └── README.md
 ├── .rtk/filters.toml            # dogfood: this repo's own project-local RTK filter
 ├── examples/
-│   ├── filters.toml             # starter .rtk/filters.toml template (0.42.x schema)
+│   ├── filters.toml             # starter .rtk/filters.toml template (0.43.x schema)
 │   └── snippets/                # drop-in AGENTS.md / CLAUDE.md blocks for product repos
 ├── scripts/
 │   ├── adopt.sh                 # one-command engineer adoption — macOS/Linux/WSL
@@ -136,7 +136,7 @@ mkdir -p /path/to/repo/.rtk && cp examples/filters.toml /path/to/repo/.rtk/filte
 To pin the installer to this toolkit's version:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | RTK_VERSION=v0.42.4 sh
+curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | RTK_VERSION=v0.43.0 sh
 ```
 
 ```bash
@@ -172,7 +172,7 @@ Apply ECI governance defaults — see `.claude/skills/rtk-adoption/references/go
 
 **Windows full guide:** `.claude/skills/rtk-adoption/references/windows.md`
 
-### 4. Project-local filters require trust (0.42.x)
+### 4. Project-local filters require trust (0.43.x)
 
 After cloning (or committing) a repo with `.rtk/filters.toml`, run **once** in the repo:
 
@@ -189,9 +189,9 @@ rtk untrust        # revoke
 | `./scripts/adopt.sh --dry-run` | Predicts every step, writes nothing |
 | `pwsh ./scripts/adopt.ps1 -DryRun` | Windows: predicts every step, writes nothing |
 | `./scripts/validate.sh` | All package checks pass (no RTK needed) |
-| `./scripts/check-parity.sh` | Claude skills ↔ Cursor rules agree on RTK 0.42.x facts |
+| `./scripts/check-parity.sh` | Claude skills ↔ Cursor rules agree on RTK 0.43.x facts |
 | `./scripts/check-links.sh` | All http(s) links resolve |
-| `rtk --version` | `rtk 0.42.4` (not the wrong crates.io package) |
+| `rtk --version` | `rtk 0.43.0` (not the wrong crates.io package) |
 | `rtk init --show` | Hook installed for your agent (`[ok]` markers) |
 | `rtk verify` | `PASS` hook integrity + `N/N tests passed` for filters |
 | Agent runs `git status` | Compact output (~3 lines, not 40) |
@@ -246,7 +246,7 @@ See the `rtk-operations` skill/rule. Common issues:
 
 - **Skills not loading** — ensure files are named `SKILL.md` (uppercase), not ZIP archives named `skill.md`.
 - **No token savings** — RTK hook not installed; run `rtk init -g --agent cursor` (Cursor) or `rtk init --global` (Claude Code) and restart the tool. Run the `rtk-audit` skill to pinpoint.
-- **Project filters not applying** — run `rtk trust` in the repo after cloning (0.42.x security gate).
+- **Project filters not applying** — run `rtk trust` in the repo after cloning (0.43.x security gate).
 - **Read/Grep/Glob output not filtered** — expected: the hook covers shell/Bash only. Prefer shell `rg`/`cat`/`find` or `rtk read`/`rtk grep`/`rtk find`.
 - **Windows native: no auto-filtering** — expected; use WSL for full hooks, or ensure `rtk.mdc` rules are committed and the agent prefixes `rtk`.
 - **Wrong `rtk` package** — `rtk gain` fails; uninstall the crates.io "Rust Type Kit" and reinstall from Homebrew or GitHub releases.

@@ -45,7 +45,7 @@ One-command RTK adoption for ECI on native Windows (Claude Code + Cursor).
 if ($Help) { Show-Usage; exit 0 }
 
 $Root        = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$RtkVersion  = if (Test-Path "$Root\RTK_VERSION") { (Get-Content "$Root\RTK_VERSION" -Raw).Trim() } else { "0.42.4" }
+$RtkVersion  = if (Test-Path "$Root\RTK_VERSION") { (Get-Content "$Root\RTK_VERSION" -Raw).Trim() } else { "0.43.0" }
 $InstallDir  = "$env:USERPROFILE\.local\bin"
 
 $RepoResolved = Resolve-Path $Repo -ErrorAction SilentlyContinue

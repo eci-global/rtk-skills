@@ -1,6 +1,6 @@
 # Example repo-level RTK filters — copy to .rtk/filters.toml and customize.
 #
-# RTK 0.42.x filter schema. The filter DSL evolves between versions — ALWAYS
+# RTK 0.43.x filter schema. The filter DSL evolves between versions — ALWAYS
 # fetch the authoritative reference before writing filter TOML:
 #   https://github.com/rtk-ai/rtk/blob/master/src/filters/README.md
 #
@@ -10,7 +10,7 @@
 #   3. Keep what the agent needs (what changed, what failed, where); cut the rest.
 #   4. Add an inline [[tests.<name>]] case so `rtk verify` can validate it.
 #   5. Commit .rtk/filters.toml, then run `rtk trust` in the repo so project-local
-#      filters are honored (0.42.x security gate). Validate with `rtk verify`.
+#      filters are honored (0.43.x security gate). Validate with `rtk verify`.
 #
 # Lookup priority (first match wins): .rtk/filters.toml → ~/.config/rtk/filters.toml
 # → built-in filters → passthrough. A project filter with the same name as a
@@ -21,7 +21,7 @@
 # zero built-in coverage until a filter exists here — that is the highest-leverage
 # operation at ECI.
 
-# ---- Field reference (0.42.x) ----
+# ---- Field reference (0.43.x) ----
 # [filters.<name>]
 #   description        = string              # human-readable
 #   match_command      = regex               # matched against the full command string, e.g. "^mybuild\\b"

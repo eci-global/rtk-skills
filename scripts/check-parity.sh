@@ -80,7 +80,7 @@ pair "bypass: rtk read"    "rtk read"                   "$OPERATIONS_SKILL" "$RT
 pair "bypass: rtk grep"    "rtk grep"                   "$OPERATIONS_SKILL" "$RTK_OPS_MDC"
 
 echo
-echo "Filter schema (0.42.x [filters.<name>]; legacy [[filter]] must be absent)"
+echo "Filter schema (0.43.x [filters.<name>]; legacy [[filter]] must be absent)"
 assert_present "[schema] examples/filters.toml has [filters." "$EXAMPLE_FILTERS" "[filters."
 assert_present "[schema] .rtk/filters.toml has [filters."     "$DOGFOOD_FILTERS" "[filters."
 assert_absent  "[schema] examples/filters.toml: no legacy [[filter]]" "$EXAMPLE_FILTERS" "[[filter]]"
@@ -93,4 +93,4 @@ if [[ $fail -gt 0 ]]; then
   echo "Parity BROKEN — fix the skill/rule drift listed above." >&2
   exit 1
 fi
-echo "Parity OK — Claude skills and Cursor rules agree on RTK 0.42.x facts."
+echo "Parity OK — Claude skills and Cursor rules agree on RTK 0.43.x facts."

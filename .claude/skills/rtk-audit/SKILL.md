@@ -1,6 +1,6 @@
 ---
 name: rtk-audit
-description: Run a structured RTK adoption audit on a developer machine or repo — checks hook status (rtk init --show), token savings (rtk gain), missed savings (rtk discover), session adoption (rtk session), and hook/filter integrity (rtk verify), then emits a fixed-section markdown report with a single recommended fix. Use when onboarding a pilot machine, diagnosing "RTK isn't saving tokens" or "no savings on Cursor/Claude", producing a baseline before fleet rollout, comparing adoption across machines, or running the post-ship pilot audit. Pairs with rtk-adoption (setup) and rtk-operations (day-2 work). Aligned to RTK 0.42.x.
+description: Run a structured RTK adoption audit on a developer machine or repo — checks hook status (rtk init --show), token savings (rtk gain), missed savings (rtk discover), session adoption (rtk session), and hook/filter integrity (rtk verify), then emits a fixed-section markdown report with a single recommended fix. Use when onboarding a pilot machine, diagnosing "RTK isn't saving tokens" or "no savings on Cursor/Claude", producing a baseline before fleet rollout, comparing adoption across machines, or running the post-ship pilot audit. Pairs with rtk-adoption (setup) and rtk-operations (day-2 work). Aligned to RTK 0.43.x.
 ---
 
 # RTK Audit (ECI Enterprise)
@@ -9,13 +9,13 @@ description: Run a structured RTK adoption audit on a developer machine or repo 
 
 Before rolling RTK out fleet-wide, ECI needs comparable, per-machine evidence of what is actually happening: is the hook installed? are savings flowing? what is being missed? **Audit-first** (AHA decision 1D) means we gather that evidence *before* rewriting guidance or forcing init. A consistent report across 5–10 pilot machines is what justifies rollout. Every step below serves a comparable, honest diagnosis — not a sales pitch. A pilot that reports zero savings is a *successful* audit if it pinpoints the missing hook.
 
-Authoritative docs (RTK 0.42.x — verify if anything seems stale):
+Authoritative docs (RTK 0.43.x — verify if anything seems stale):
 - Docs: https://www.rtk-ai.app/docs/ · Analytics: /docs/analytics/gain/ , /docs/analytics/discover/
 - Repo: https://github.com/rtk-ai/rtk · Filter DSL: https://github.com/rtk-ai/rtk/blob/master/src/filters/README.md
 
-RTK version pinned by this toolkit: see `RTK_VERSION` at the repo root (currently 0.42.4).
+RTK version pinned by this toolkit: see `RTK_VERSION` at the repo root (currently 0.43.0).
 
-## Commands this audit uses (RTK 0.42.x)
+## Commands this audit uses (RTK 0.43.x)
 
 There is **no `rtk doctor`** — do not invent one. Use these:
 
@@ -34,7 +34,7 @@ Optional machine-readable export for fleet rollup: `rtk gain --all --format json
 
 Record once at the top so pilot machines are comparable:
 - `date -u` — audit timestamp (UTC)
-- `rtk --version` — must be `rtk 0.42.x`; if `rtk gain` fails, the wrong crates.io `rtk` ("Rust Type Kit") is installed
+- `rtk --version` — must be `rtk 0.43.x`; if `rtk gain` fails, the wrong crates.io `rtk` ("Rust Type Kit") is installed
 - `uname -s` — platform; **native Windows has no auto-rewrite hook — this is expected, not a failure**
 - agent in use (Claude Code / Cursor) and whether the tool was restarted after init
 
@@ -93,11 +93,11 @@ hook integrity: <PASS|FAIL> | filter tests: <N/N passed>
 
 Pick **exactly one** from this ladder (highest applicable):
 
-1. **RTK not installed / wrong package** → `brew install rtk` (macOS) or `curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | RTK_VERSION=v0.42.4 sh` (Linux/WSL). Verify with `rtk --version && rtk gain`.
+1. **RTK not installed / wrong package** → `brew install rtk` (macOS) or `curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | RTK_VERSION=v0.43.0 sh` (Linux/WSL). Verify with `rtk --version && rtk gain`.
 2. **Hook missing for the agent in use** → `rtk init -g --agent cursor` (Cursor) or `rtk init --global` (Claude Code), then **restart the AI tool**. Re-run `rtk init --show` to confirm `[ok]`.
 3. **Hook present, savings still 0** → run a few commands in a fresh agent session, re-check `rtk gain`; if still 0, inspect `rtk discover` (unrewritten commands) and `rtk session` (adoption rate).
 4. **Built-in filter misses a recurring command** → wrap with `rtk err <cmd>` / `rtk summary <cmd>` / `rtk proxy <cmd>`, or author a `.rtk/filters.toml` filter (see `rtk-operations`).
-5. **Project-local filters not applying** → after cloning or committing `.rtk/filters.toml`, run `rtk trust` in the repo (0.42.x security gate) so project filters are honored.
+5. **Project-local filters not applying** → after cloning or committing `.rtk/filters.toml`, run `rtk trust` in the repo (0.43.x security gate) so project filters are honored.
 6. **Read/Grep/Glob bypassing RTK** → expected: the hook covers shell/Bash only. Prefer shell `rg` / `cat` / `find` or `rtk read` / `rtk grep` / `rtk find` in skills and prompts (see bypass guidance in `rtk-adoption` / `rtk-operations`).
 
 If multiple apply, pick the one highest on the ladder — fixing a missing hook subsumes filter work.

@@ -24,7 +24,7 @@ cursor-rtk/.cursor/rules/
 3. Each developer runs once per machine: `rtk init -g --agent cursor` → restart Cursor
    (installs the hooks.json preToolUse rewrite so commands are filtered transparently).
 4. If the repo commits `.rtk/filters.toml`, run `rtk trust` once after cloning so the
-   project-local filters are honored (0.42.x security gate).
+   project-local filters are honored (0.43.x security gate).
 
 **Windows note:** WSL developers init from inside WSL (full hook support). Native Windows
 developers still commit the rules — agents prefix `rtk` explicitly because auto-rewrite
@@ -68,7 +68,7 @@ the rule set itself stays token-cheap, consistent with its purpose.
 
 Maintained alongside: `.claude/skills/rtk-adoption` / `rtk-operations` / `rtk-audit`
 (Claude Code) and the RTK Enterprise Adoption Guide. Keep them in sync when RTK behavior
-changes — the pinned version lives in `RTK_VERSION` at the repo root (currently 0.42.4).
+changes — the pinned version lives in `RTK_VERSION` at the repo root (currently 0.43.0).
 Run `./scripts/check-parity.sh` to enforce Claude ↔ Cursor parity.
 
 Run `./scripts/validate.sh` from the repo root before sharing with teams.

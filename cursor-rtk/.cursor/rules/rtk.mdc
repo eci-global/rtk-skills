@@ -23,7 +23,7 @@ This repo uses RTK (Rust Token Killer) to cut LLM token consumption 60-90% on te
 
 ## Read/Grep/Glob bypass (structural)
 
-The hook covers shell/Bash tool calls only — built-in Read/Grep/Glob and MCP outputs are NOT filtered. Prefer shell `rg` / `cat` / `find` or `rtk read` / `rtk grep` / `rtk find` so output is compacted and counted toward savings. Project-local filters in `.rtk/filters.toml` require `rtk trust` once after cloning (0.42.x security gate).
+The hook covers shell/Bash tool calls only — built-in Read/Grep/Glob and MCP outputs are NOT filtered. Prefer shell `rg` / `cat` / `find` or `rtk read` / `rtk grep` / `rtk find` so output is compacted and counted toward savings. Project-local filters in `.rtk/filters.toml` require `rtk trust` once after cloning (0.43.x security gate).
 
 ## Output hygiene
 

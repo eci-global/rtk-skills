@@ -116,7 +116,7 @@ $env:RTK_DISABLED = "1"; git status    # one command, raw output
 
 | Check | WSL | Native Windows |
 |-------|-----|----------------|
-| `rtk --version` | `rtk 0.42.x` | `rtk 0.42.x` |
+| `rtk --version` | `rtk 0.43.x` | `rtk 0.43.x` |
 | `rtk gain` | Dashboard loads | Dashboard loads |
 | `rtk git status` vs `git status` | Filtered shorter output | Filtered shorter output |
 | Agent `git status` | Compact (hook) | Compact only if agent prefixes `rtk` or rules loaded |

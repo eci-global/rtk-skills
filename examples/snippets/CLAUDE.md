@@ -1,6 +1,6 @@
 <!-- RTK snippet for product-repo CLAUDE.md (Claude Code). -->
 <!-- Copy this block into your repo's CLAUDE.md (or ~/.claude/CLAUDE.md for global). -->
-<!-- Full setup: https://www.rtk-ai.app/docs/  ·  Pinned version: 0.42.4 -->
+<!-- Full setup: https://www.rtk-ai.app/docs/  ·  Pinned version: 0.43.0 -->
 
 ## RTK token reduction (this repo)
 
@@ -11,7 +11,7 @@ This repo uses [RTK (Rust Token Killer)](https://www.rtk-ai.app/) to cut LLM tok
 # macOS
 brew install rtk
 # Linux / WSL
-curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | RTK_VERSION=v0.42.4 sh
+curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | RTK_VERSION=v0.43.0 sh
 # verify the RIGHT package (a crates.io "Rust Type Kit" also installs as `rtk`)
 rtk --version && rtk gain
 # init for Claude Code, then RESTART Claude Code
@@ -35,7 +35,7 @@ outputs bypass RTK. For those paths, prefer shell `rg` / `cat` / `find` or expli
 
 ### Project filters
 This repo commits `.rtk/filters.toml`. After cloning, run `rtk trust` once so the project-local
-filters are honored (0.42.x security gate). Repo-level filter overrides live in `.rtk/filters.toml`.
+filters are honored (0.43.x security gate). Repo-level filter overrides live in `.rtk/filters.toml`.
 
 ### Governance
 Telemetry off: `[telemetry] enabled = false` in config.toml + `export RTK_TELEMETRY_DISABLED=1`.

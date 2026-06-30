@@ -82,14 +82,14 @@ Custom filters exist at two scopes — mirror the adoption scopes:
 
 This is the highest-leverage operation at ECI: niche toolchains (BBj/MarkSystems build and test output, proprietary CLIs) have no built-in coverage, so their savings are 0% until a filter exists.
 
-Schema (0.42.x): `[filters.<name>]` with `match_command` (regex) + action fields (`strip_lines_matching`, `keep_lines_matching`, `replace`, `max_lines`, `tail_lines`, `on_empty`, …) and `[[tests.<name>]]` inline cases — NOT the legacy `[[filter]]` shape. Lookup priority: `.rtk/filters.toml` → `~/.config/rtk/filters.toml` → built-ins → passthrough (first match wins; a same-named project filter shadows the built-in and warns).
+Schema (0.43.x): `[filters.<name>]` with `match_command` (regex) + action fields (`strip_lines_matching`, `keep_lines_matching`, `replace`, `max_lines`, `tail_lines`, `on_empty`, …) and `[[tests.<name>]]` inline cases — NOT the legacy `[[filter]]` shape. Lookup priority: `.rtk/filters.toml` → `~/.config/rtk/filters.toml` → built-ins → passthrough (first match wins; a same-named project filter shadows the built-in and warns).
 
 Process:
 1. **Fetch the authoritative DSL reference first** — https://github.com/rtk-ai/rtk/blob/master/src/filters/README.md — and follow its current syntax exactly. The DSL evolves between versions; do not write filter TOML from memory.
 2. Capture 2-3 **real raw output samples** of the target command (success + failure cases).
 3. Decide what the *agent* actually needs from that output (usually: what changed, what failed, where). Everything else is filterable noise.
 4. Write the filter with an inline `[[tests.<name>]]` case, then validate with `rtk verify` (and by running the command through rtk): signal preserved? failure detail still identifiable (or recoverable via tee)?
-5. Commit `.rtk/filters.toml` with a short comment naming the command, expected savings, and the samples used; run `rtk trust` in the repo so the 0.42.x security gate honors it (`rtk untrust` revokes, `rtk trust --list` audits). CI gate: `rtk verify --require-all` fails if any filter lacks inline tests.
+5. Commit `.rtk/filters.toml` with a short comment naming the command, expected savings, and the samples used; run `rtk trust` in the repo so the 0.43.x security gate honors it (`rtk untrust` revokes, `rtk trust --list` audits). CI gate: `rtk verify --require-all` fails if any filter lacks inline tests.
 
 Safety rule for filters: when in doubt, keep failure-path information and cut success-path verbosity. A filter that hides a passing test costs nothing; a filter that hides a failing assertion costs trust.
 

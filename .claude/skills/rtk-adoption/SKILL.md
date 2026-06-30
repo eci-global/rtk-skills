@@ -13,9 +13,9 @@ Authoritative docs (verify against these if anything below seems outdated — RT
 - Docs: https://www.rtk-ai.app/docs/
 - Repo: https://github.com/rtk-ai/rtk
 - Troubleshooting: https://www.rtk-ai.app/guide/troubleshooting
-- Filter DSL (0.42.x schema): https://github.com/rtk-ai/rtk/blob/master/src/filters/README.md
+- Filter DSL (0.43.x schema): https://github.com/rtk-ai/rtk/blob/master/src/filters/README.md
 
-This toolkit pins an RTK version — see `RTK_VERSION` at the repo root (currently 0.42.4). For a structured before/after diagnosis across pilot machines, run the companion `rtk-audit` skill (audit-first is the ECI rollout order).
+This toolkit pins an RTK version — see `RTK_VERSION` at the repo root (currently 0.43.0). For a structured before/after diagnosis across pilot machines, run the companion `rtk-audit` skill (audit-first is the ECI rollout order).
 
 ## Step 0 — Detect the situation
 
@@ -67,7 +67,7 @@ Always dry-run first on a machine you don't own outright — it prints every fil
 rtk init --global --dry-run -v
 ```
 
-Expect output like (verified on rtk 0.42.x — paths vary by platform):
+Expect output like (verified on rtk 0.43.x — paths vary by platform):
 - **Claude Code:** `~/.claude/RTK.md`, `@RTK.md` in `~/.claude/CLAUDE.md`, hook in `settings.json`, filters template
 - **Config/filters template:** Linux/WSL `~/.config/rtk/` · macOS `~/Library/Application Support/rtk/` · Windows `%APPDATA%\rtk\`
 - **Cursor:** patch to `~/.cursor/hooks.json` (or WSL equivalent)
@@ -110,6 +110,6 @@ State these honestly at the end of setup:
 1. The hook covers **Bash tool calls only**. Claude Code's built-in Read/Grep/Glob and MCP tool outputs bypass RTK. For those paths, prefer shell commands (`cat`, `rg`, `find`) or explicit `rtk read` / `rtk grep` / `rtk find` in skills and prompts.
 2. Filtering is lossy on purpose; on command **failure**, RTK saves the full raw output to a tee log and prints the path (`~/.local/share/rtk/tee/` on Linux/macOS/WSL; `%LOCALAPPDATA%\rtk\tee\` on native Windows), so the agent can read details without re-running.
 3. Kill switch: `RTK_DISABLED=1 <cmd>` for one command, `[hooks] exclude_commands` for permanent exclusions, `rtk init --uninstall` for full removal.
-4. Project-local filters live in `.rtk/filters.toml`, committed to the repo. After cloning or committing one, run `rtk trust` in the repo so the 0.42.x security gate honors it (`rtk untrust` revokes, `rtk trust --list` audits). Validate filters with `rtk verify`.
+4. Project-local filters live in `.rtk/filters.toml`, committed to the repo. After cloning or committing one, run `rtk trust` in the repo so the 0.43.x security gate honors it (`rtk untrust` revokes, `rtk trust --list` audits). Validate filters with `rtk verify`.
 
 For day-2 work — savings reports, troubleshooting, writing custom filters for niche toolchains (e.g., BBj/MarkSystems output) — hand off to the `rtk-operations` skill. To baseline a machine before rollout or diagnose "no savings", run `rtk-audit` (`rtk init --show`, `rtk gain`, `rtk discover`, `rtk session`, `rtk verify`, and optional `rtk learn`).

@@ -19,7 +19,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-RTK_VERSION="$(cat "$ROOT/RTK_VERSION" 2>/dev/null || echo 0.42.4)"
+RTK_VERSION="$(cat "$ROOT/RTK_VERSION" 2>/dev/null || echo 0.43.0)"
 DRY_RUN=false
 SCOPE=both
 REPO_TARGET="$PWD"
