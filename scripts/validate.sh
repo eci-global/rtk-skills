@@ -81,6 +81,16 @@ check "CI has full job (pinned RTK)" grep -q 'Full validation (pinned RTK)' "$RO
 check "CI pins RTK via install.sh" grep -q 'install.sh' "$ROOT/.github/workflows/rtk-skills-ci.yml"
 
 echo
+echo "Adoption bootstrap"
+check "adopt.sh exists" test -f "$ROOT/scripts/adopt.sh"
+check "adopt.sh is executable" test -x "$ROOT/scripts/adopt.sh"
+check "adopt.sh inits both agents" bash -c 'grep -q "init --global" "$0" && grep -q "init -g --agent cursor" "$0"' "$ROOT/scripts/adopt.sh"
+check "adopt.sh supports --dry-run" grep -q -- '--dry-run' "$ROOT/scripts/adopt.sh"
+check "adopt.sh supports --scope" grep -q -- '--scope' "$ROOT/scripts/adopt.sh"
+check "adopt.sh supports --no-trust" grep -q -- '--no-trust' "$ROOT/scripts/adopt.sh"
+check "adopt.sh pins RTK_VERSION" grep -q 'RTK_VERSION' "$ROOT/scripts/adopt.sh"
+
+echo
 echo "Examples & docs"
 check "root README exists" test -f "$ROOT/README.md"
 check "cursor-rtk README exists" test -f "$ROOT/cursor-rtk/README.md"

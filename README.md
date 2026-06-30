@@ -26,6 +26,7 @@ rtk-skills/
 │   ├── filters.toml             # starter .rtk/filters.toml template (0.42.x schema)
 │   └── snippets/                # drop-in AGENTS.md / CLAUDE.md blocks for product repos
 ├── scripts/
+│   ├── adopt.sh                 # one-command engineer adoption (install + init + seed + govern + verify)
 │   ├── validate.sh              # structure + artifact smoke test (no RTK needed)
 │   ├── check-parity.sh          # fail if Claude skills and Cursor rules drift
 │   ├── check-links.sh           # verify http(s) links resolve
@@ -64,7 +65,29 @@ Layers 2 and 3 travel with the code — that is why ECI prefers repo-scoped skil
 
 ## Quick start
 
-### 1. Validate the package (maintainers)
+### 1. One-command adoption (engineers)
+
+The fastest path. From your product repo (or pass `--repo <path>`), run the toolkit's bootstrap:
+
+```bash
+/path/to/rtk-skills/scripts/adopt.sh
+```
+
+One command:
+- installs RTK pinned to `RTK_VERSION` (if missing or wrong package)
+- inits **both** hooks: `rtk init --global` (Claude Code) + `rtk init -g --agent cursor` (Cursor)
+- copies `rtk-adoption` / `rtk-operations` / `rtk-audit` to `~/.claude/skills/` (global)
+- seeds your repo: `.cursor/rules`, `.claude/skills`, `.rtk/filters.toml`, and an RTK block in `AGENTS.md` + `CLAUDE.md` (idempotent)
+- applies ECI governance (telemetry off, `exclude_commands`, `RTK_TELEMETRY_DISABLED=1`) — add-if-missing, respects existing values
+- runs `rtk trust` in your repo (use `--no-trust` to review filters first)
+- verifies with `rtk init --show` + `rtk verify` and prints a readiness summary
+
+Then **restart Claude Code and Cursor**, run a few commands, and check `rtk gain` (non-zero = savings flowing).
+
+Flags: `--dry-run` · `--scope global|repo|both` (default `both`) · `--repo <path>` (default `$PWD`) · `--no-trust` · `--yes`.
+Native Windows: run inside WSL (the bash bootstrap covers macOS, Linux, WSL).
+
+### 2. Validate the package (maintainers)
 
 ```bash
 ./scripts/validate.sh           # structure + artifacts (no RTK needed)
@@ -73,7 +96,7 @@ Layers 2 and 3 travel with the code — that is why ECI prefers repo-scoped skil
 ./scripts/validate.sh --full    # also requires RTK installed
 ```
 
-### 2. Adopt in a product repo (layers 2 + 3)
+### 3. Adopt in a product repo (manual, layers 2 + 3)
 
 **Claude Code** — copy skills into the repo:
 
@@ -148,7 +171,7 @@ Apply ECI governance defaults — see `.claude/skills/rtk-adoption/references/go
 
 **Windows full guide:** `.claude/skills/rtk-adoption/references/windows.md`
 
-### 3. Project-local filters require trust (0.42.x)
+### 4. Project-local filters require trust (0.42.x)
 
 After cloning (or committing) a repo with `.rtk/filters.toml`, run **once** in the repo:
 
@@ -162,6 +185,7 @@ rtk untrust        # revoke
 
 | Check | Expected |
 | --- | --- |
+| `./scripts/adopt.sh --dry-run` | Predicts every step, writes nothing |
 | `./scripts/validate.sh` | All package checks pass (no RTK needed) |
 | `./scripts/check-parity.sh` | Claude skills ↔ Cursor rules agree on RTK 0.42.x facts |
 | `./scripts/check-links.sh` | All http(s) links resolve |
