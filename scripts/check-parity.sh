@@ -65,6 +65,7 @@ pair "tee recovery"      "~/.local/share/rtk/tee/" "$ADOPTION_SKILL" "$RTK_MDC"
 pair "bypass: rtk read"  "rtk read"                "$ADOPTION_SKILL" "$RTK_MDC"
 pair "bypass: rtk grep"  "rtk grep"                "$ADOPTION_SKILL" "$RTK_MDC"
 pair "bypass: rtk find"  "rtk find"                "$ADOPTION_SKILL" "$RTK_MDC"
+pair "hook audit"        "RTK_HOOK_AUDIT"           "$ADOPTION_SKILL" "$RTK_MDC"
 
 echo
 echo "Pair 2: rtk-operations (SKILL) ↔ rtk-operations.mdc (agent-requested rule)"
@@ -81,11 +82,16 @@ pair "bypass: rtk grep"    "rtk grep"                   "$OPERATIONS_SKILL" "$RT
 pair "bypass: rtk find"    "rtk find"                   "$OPERATIONS_SKILL" "$RTK_OPS_MDC"
 
 echo
-echo "Filter schema (0.43.x [filters.<name>]; legacy [[filter]] must be absent)"
+echo "Filter schema (0.43.x [filters.<name>]; schema_version = 1; legacy [[filter]] must be absent)"
 assert_present "[schema] examples/filters.toml has [filters." "$EXAMPLE_FILTERS" "[filters."
 assert_present "[schema] .rtk/filters.toml has [filters."     "$DOGFOOD_FILTERS" "[filters."
+assert_present "[schema] catalog template has [filters."      "$ROOT/catalog/_template/filters.toml" "[filters."
+assert_present "[schema] examples/filters.toml has schema_version = 1" "$EXAMPLE_FILTERS" "schema_version = 1"
+assert_present "[schema] .rtk/filters.toml has schema_version = 1"     "$DOGFOOD_FILTERS" "schema_version = 1"
+assert_present "[schema] catalog template has schema_version = 1"      "$ROOT/catalog/_template/filters.toml" "schema_version = 1"
 assert_absent  "[schema] examples/filters.toml: no legacy [[filter]]" "$EXAMPLE_FILTERS" "[[filter]]"
 assert_absent  "[schema] .rtk/filters.toml: no legacy [[filter]]"     "$DOGFOOD_FILTERS" "[[filter]]"
+assert_absent  "[schema] catalog template: no legacy [[filter]]"      "$ROOT/catalog/_template/filters.toml" "[[filter]]"
 
 echo
 echo "======================="

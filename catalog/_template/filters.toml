@@ -1,0 +1,69 @@
+# catalog/_template/filters.toml — starter for a promoted team filter.
+#
+# RTK 0.43.x filter schema. The filter DSL evolves between versions — ALWAYS
+# fetch the authoritative reference before writing filter TOML:
+#   https://github.com/rtk-ai/rtk/blob/master/src/filters/README.md
+#
+# Copy this file to catalog/<your-team>/filters.toml, replace the example with a
+# filter you have already proven in a product repo's .rtk/filters.toml, and add
+# an index row in catalog/README.md. See ../CONTRIBUTING.md for the full promote
+# workflow.
+#
+# Lookup priority (first match wins): .rtk/filters.toml -> ~/.config/rtk/filters.toml
+# -> built-in filters -> passthrough. A project filter with the same name as a
+# built-in shadows it and prints a warning.
+
+schema_version = 1
+
+# ---- Field reference (0.43.x) ----
+# [filters.<name>]
+#   description        = string              # human-readable
+#   match_command      = regex               # matched against the full command string, e.g. "^mybuild\\b"
+#   strip_ansi         = bool                # strip ANSI escape codes first
+#   filter_stderr      = bool                # merge stderr into stdout before filtering
+#   strip_lines_matching = [regex, ...]      # drop lines matching any regex
+#   keep_lines_matching  = [regex, ...]      # keep only lines matching at least one regex
+#   replace            = [{ pattern = regex, replacement = string }, ...]
+#   match_output       = [{ pattern = regex, message = string }, ...]  # short-circuit rules
+#   truncate_lines_at  = int                 # truncate lines longer than N chars
+#   max_lines          = int                 # keep only the first N lines (after other filters)
+#   tail_lines         = int                 # keep only the last N lines (applied after other filters)
+#   on_empty           = string              # fallback message when filtered output is empty
+#
+# [[tests.<name>]]
+#   name     = string      # descriptive test name
+#   input    = string      # raw command output (use TOML literal multi-line '''...''' for quotes/newlines)
+#   expected = string      # expected filtered output
+
+# ---- Concrete example (replace with your proven filter) ----
+[filters.mybuild]
+description = "Compact mybuild test output: keep the summary + failures, drop progress"
+match_command = "^mybuild\\b"
+strip_ansi = true
+strip_lines_matching = [
+  "^Progress:",
+  "^\\[DEBUG\\]",
+  "^\\s*$",
+]
+keep_lines_matching = [
+  "BUILD (SUCCESS|FAIL)",
+  "FAILED|Error|✗",
+  "Summary:",
+]
+max_lines = 60
+on_empty = "mybuild: ok"
+
+[[tests.mybuild]]
+name = "keeps failure summary, drops progress noise"
+input = '''
+Progress: 10%
+Progress: 50%
+[DEBUG] cache miss
+
+Summary: 42 passed, 1 failed
+FAILED test_login (auth_test.py:18)
+'''
+expected = '''
+Summary: 42 passed, 1 failed
+FAILED test_login (auth_test.py:18)
+'''

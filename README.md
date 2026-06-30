@@ -16,21 +16,31 @@ rtk-skills/
 │   │   └── SKILL.md
 │   └── rtk-audit/               # structured adoption audit (audit-first rollout)
 │       └── SKILL.md
+├── .claude/commands/            # Claude Code slash commands (seeded by adopt.sh)
+│   ├── diagnose.md              # live RTK troubleshooting (complements rtk-audit)
+│   └── test-routing.md          # dry-run "does RTK filter this command?"
 ├── cursor-rtk/                  # Cursor rules bundle (parity with the Claude skills)
 │   ├── .cursor/rules/
 │   │   ├── rtk.mdc              # always-on behavioral rule
 │   │   └── rtk-operations.mdc   # agent-requested operations rule
 │   └── README.md
 ├── .rtk/filters.toml            # dogfood: this repo's own project-local RTK filter
+├── catalog/                     # shared filter catalog — promoted from product repos
+│   ├── README.md                # filter index (command | team | source | status)
+│   └── _template/filters.toml   # copy-paste starter (0.43.x schema, with tests)
+├── docs/
+│   └── COMMANDS.md              # canonical list of RTK-filtered commands (first-class + TOML)
 ├── examples/
 │   ├── filters.toml             # starter .rtk/filters.toml template (0.43.x schema)
 │   └── snippets/                # drop-in AGENTS.md / CLAUDE.md blocks for product repos
+├── CONTRIBUTING.md              # how to promote a proven filter into catalog/
 ├── scripts/
 │   ├── adopt.sh                 # one-command engineer adoption — macOS/Linux/WSL
 │   ├── adopt.ps1                # one-command engineer adoption — native Windows (PowerShell)
 │   ├── validate.sh              # structure + artifact smoke test (no RTK needed)
 │   ├── check-parity.sh          # fail if Claude skills and Cursor rules drift
 │   ├── check-links.sh           # verify http(s) links resolve
+│   ├── check-installation.sh    # pre-adoption diagnostic (wrong-package + hook + governance)
 │   └── pack-skills.sh           # rebuild dist/*.skill from SKILL.md sources
 ├── .github/workflows/rtk-skills-ci.yml   # package (no RTK) + full (pinned RTK) CI
 ├── RTK_VERSION                  # single source of truth for the pinned RTK version
@@ -63,6 +73,15 @@ RTK behavior composes in three layers — adopt top-down, each layer is independ
 | **3. Repo filters** | Project-local `.rtk/filters.toml` for this toolchain (niche CLIs, built-in overrides) | `.rtk/filters.toml` committed to the repo | Repo owner authors; run `rtk trust` after cloning |
 
 Layers 2 and 3 travel with the code — that is why ECI prefers repo-scoped skills/rules and committed `.rtk/filters.toml` over machine-only config.
+
+## Filter catalog & contribution
+
+The auto-rewrite hook (layer 1) covers built-in commands (`git`, common test runners). Niche toolchains — MarkSystems/BBj build output, proprietary SQL runners — have **zero built-in coverage**, so their savings stay at 0% until a custom filter exists. Those filters follow a **two-tier** path so local discoveries flow back to every team:
+
+1. **Tier 1 — author in the product repo.** Write the filter in `<product-repo>/.rtk/filters.toml` (0.43.x schema, with inline `[[tests.*]]`), `rtk verify`, commit, `rtk trust`. Iterate fast where the toolchain runs daily.
+2. **Tier 2 — promote to the shared catalog.** After ~1 week of clean runs, open a PR adding `catalog/<team>/filters.toml` to this repo and one row to the [filter index](catalog/README.md#filter-index). Other teams then copy the block into their own `.rtk/filters.toml`.
+
+Filters **mature in product repos first**; the central catalog is for proven cross-team reuse, not a first draft. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full promote workflow and the filter authoring checklist, and [`catalog/_template/filters.toml`](catalog/_template/filters.toml) for a copy-paste starter.
 
 ## Quick start
 

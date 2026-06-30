@@ -17,6 +17,9 @@
 # built-in shadows it and prints a warning.
 #
 # This file is a template — replace the example with real filters for your stack.
+
+schema_version = 1
+
 # Niche toolchains (BBj/MarkSystems build + test output, proprietary CLIs) have
 # zero built-in coverage until a filter exists here — that is the highest-leverage
 # operation at ECI.

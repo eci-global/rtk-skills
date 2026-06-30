@@ -1,0 +1,376 @@
+# catalog/marksystems/filters.toml — promoted from the ms-marksystems pilot.
+#
+# Source: eci-rhc/ms-marksystems (.rtk/filters.toml) — proven in the RTK pilot
+# (see PR #1905). These cover the two verbose toolchains with ZERO built-in RTK
+# coverage: the BBjUnit/integration/java test runners and the BBj/ms-compiler
+# build. Filters strip success/progress noise only — failure-path information
+# is always preserved (RTK design rule: when in doubt, keep failure info, cut
+# success verbosity).
+#
+# To use one of these in YOUR repo, copy the [filters.<name>] block (and its
+# [[tests.<name>]] cases) into your repo's .rtk/filters.toml, then:
+#     rtk verify            # validate the inline tests
+#     rtk trust             # honor the project-local filters (0.43.x security gate)
+# Docs: https://github.com/rtk-ai/rtk/blob/master/src/filters/README.md
+#
+# Filter formats are line-based regex strips (single-quoted TOML strings =
+# literal, so regex backslashes need no escaping). Output still reads like
+# real command output after filtering.
+schema_version = 1
+
+# ---------------------------------------------------------------------------
+# BBjUnit — parser.py colored tree (testing-unit.sh / run-tests.sh)
+# Success: summary short-circuit via match_output. Failure: class + ✖ + error.
+# ---------------------------------------------------------------------------
+[filters.bbjunit-parser]
+description = "BBjUnit parser.py output — drop passing methods, keep failures + summary"
+match_command = "(^|/)parser\\.py\\b|testing-unit\\.sh|run-tests\\.sh"
+strip_ansi = true
+# NOTE: keep_lines_matching is an allowlist, so the green-check (U+2713) passing
+# lines and yellow-circle (U+26AC) ignored lines are already dropped — they match
+# none of the keep patterns. A separate strip_lines_matching is unnecessary AND
+# rejected by RTK 0.43.x ("strip_lines_matching and keep_lines_matching are
+# mutually exclusive"). The allowlist alone delivers the ✓/◬ drop.
+keep_lines_matching = [
+  "Test Summary",
+  "^\\s+\\* ",
+  "✖",
+  "#\\d+",
+  "Assert\\.",
+  "passed.*failed.*ignored",
+  "File not found",
+  "Missing file to parse",
+  "Tests failed to run properly",
+  "warning: could not write counts",
+  "Can't run tests in this environment",
+  "no XML produced",
+]
+match_output = [
+  { pattern = "0 failed", message = "BBjUnit: all tests passed (see tee log for per-class detail if needed)" },
+]
+tail_lines = 12
+
+[[tests.bbjunit-parser]]
+name = "drops passing methods, keeps failures + summary"
+input = """
+Test Summary:
+   \u2713 addsAccountToGroup (3 ms)
+   \u2716 rejectsNegativeAmount (1 ms)
+     \u2023 #42 AssertionError: expected !ERROR but call returned 0
+32 passed, 1 failed, 2 ignored
+"""
+expected = """
+Test Summary:
+   \u2716 rejectsNegativeAmount (1 ms)
+     \u2023 #42 AssertionError: expected !ERROR but call returned 0
+32 passed, 1 failed, 2 ignored
+"""
+
+# ---------------------------------------------------------------------------
+# BBj procedural integration — testing-integration.sh
+# ---------------------------------------------------------------------------
+[filters.testing-integration]
+description = "BBj integration runner — compact pass/skip/fail summary"
+match_command = "testing-integration\\.sh"
+strip_ansi = true
+keep_lines_matching = [
+  "^=== .* pass",
+  "Integration test summary",
+  "^Passed:",
+  "^Failed:",
+  "^Skipped:",
+  "^Total:",
+  "^Failed tests:",
+  "^  - ",
+  "FAIL",
+  "SKIP -",
+  "MISSING via PREFIX",
+  "last 40 lines",
+  "^         ",
+  "Full summary:",
+  "!ERROR",
+  "passed - ",
+  "INTEGRATION_TEST:",
+  "No .* root manifest",
+]
+tail_lines = 80
+
+[[tests.testing-integration]]
+name = "keeps banners and summary, drops progress noise"
+input = """
+=== suite-a pass ===
+loading manifest entries...
+Integration test summary
+Passed: 10
+Failed: 1
+"""
+expected = """
+=== suite-a pass ===
+Integration test summary
+Passed: 10
+Failed: 1
+"""
+
+# ---------------------------------------------------------------------------
+# Java JUnit — testing-java.sh (JUnit Platform Console Launcher)
+# ---------------------------------------------------------------------------
+[filters.testing-java]
+description = "Java JUnit runner — keep launcher summary and failure details"
+match_command = "testing-java\\.sh"
+strip_ansi = true
+keep_lines_matching = [
+  "=== Running .* JUnit",
+  "=== Java JUnit",
+  "passed=.*failed=.*total=",
+  "tests passed",
+  "FAILED",
+  "FAILURE",
+  "AssertionError",
+  "Exception",
+  "Error:",
+  "There were \\d+ test failures",
+  "JUnit Vintage",
+  "skipping -- no",
+  "Can't run Java",
+  "\\[\\s+\\d+ tests failed",
+]
+tail_lines = 60
+
+[[tests.testing-java]]
+name = "keeps launcher summary and failures, drops noise"
+input = """
+=== Running Q JUnit suite ===
+[debug] scanning classpath
+passed=5 failed=1 total=6
+FAILED com.ame.q.FooTest.bar()
+"""
+expected = """
+=== Running Q JUnit suite ===
+passed=5 failed=1 total=6
+FAILED com.ame.q.FooTest.bar()
+"""
+
+# ---------------------------------------------------------------------------
+# All-pipelines wrapper — testing-all.sh / run-all-tests.sh
+# ---------------------------------------------------------------------------
+[filters.testing-all]
+description = "testing-all.sh rollup — keep pipeline table and RESULT line"
+match_command = "testing-all\\.sh|run-all-tests\\.sh"
+strip_ansi = true
+keep_lines_matching = [
+  "testing-all.sh summary",
+  "Pipeline A --",
+  "Pipeline J --",
+  "Pipeline B --",
+  "^  TOTAL",
+  "^  RESULT:",
+]
+tail_lines = 25
+
+[[tests.testing-all]]
+name = "keeps pipeline table and RESULT, drops noise"
+input = """
+testing-all.sh summary
+running pipelines now
+Pipeline A -- unit: pass
+Pipeline J -- java: pass
+Pipeline B -- integration: pass
+  TOTAL: 3 passed
+  RESULT: PASS
+"""
+expected = """
+testing-all.sh summary
+Pipeline A -- unit: pass
+Pipeline J -- java: pass
+Pipeline B -- integration: pass
+  TOTAL: 3 passed
+  RESULT: PASS
+"""
+
+# ---------------------------------------------------------------------------
+# Single-file BBj integration — run-bbj-integration.sh
+# ---------------------------------------------------------------------------
+[filters.run-bbj-integration]
+description = "Single BBj integration test — keep markers, errors, pass lines"
+match_command = "run-bbj-integration\\.sh"
+strip_ansi = true
+keep_lines_matching = [
+  "^=== Running ",
+  "passed - ",
+  "!ERROR",
+  "error=800",
+  "Cannot find program",
+  "Missing file",
+  "Test file not found",
+  "Can't run integration",
+  "INTEGRATION_TEST:",
+]
+max_lines = 80
+
+[[tests.run-bbj-integration]]
+name = "keeps run banner and pass line, drops noise"
+input = """
+=== Running fooIntegrationTest ===
+opening connection...
+passed - fooIntegrationTest
+"""
+expected = """
+=== Running fooIntegrationTest ===
+passed - fooIntegrationTest
+"""
+
+# ---------------------------------------------------------------------------
+# ms-compiler build — main.py / all_others.py / all_java.py
+# ---------------------------------------------------------------------------
+[filters.ms-compiler-build]
+description = "ms-compiler build — keep phase headers, compile errors, failed files"
+match_command = "(^|/)main\\.py|all_others\\.py|all_java\\.py|ms-compiler/compiler"
+strip_ansi = true
+# Absorbs the former bbj-compile filter's job: javac's informational "Note:" lines
+# (unchecked/deprecation reminders) flood Java builds but carry no actionable
+# signal. They are already dropped by the keep-allowlist below (they match none of
+# the keep patterns), so no separate strip_lines_matching is needed — and RTK 0.43.x
+# forbids combining strip_lines_matching with keep_lines_matching anyway.
+keep_lines_matching = [
+  "^-- ",
+  "COMPILE",
+  "!!!!! COMPILE ERRORS",
+  "^err:",
+  "Exception",
+  "Traceback",
+  "cannot find",
+  "^\\[",
+]
+match_output = [
+  { pattern = "!!!!! COMPILE ERRORS", message = "ms-compiler: COMPILE ERRORS — read tee log for failing files" },
+]
+tail_lines = 40
+
+[[tests.ms-compiler-build]]
+name = "strips javac Note: spam, keeps phase headers and errors"
+input = """
+-- src-common/com/ame -> ihms-common
+Note: /src/com/ame/Foo.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+/src/com/ame/Bar.java:12: error: cannot find symbol
+"""
+expected = """
+-- src-common/com/ame -> ihms-common
+/src/com/ame/Bar.java:12: error: cannot find symbol
+"""
+
+# ---------------------------------------------------------------------------
+# docker exec ms-app — common agent pattern for compile + test in container
+# ---------------------------------------------------------------------------
+[filters.docker-ms-app]
+description = "docker exec ms-app — keep errors and test markers, drop BBj noise"
+match_command = "docker exec ms-app"
+strip_ansi = true
+filter_stderr = true
+keep_lines_matching = [
+  "Test Summary",
+  "passed.*failed.*ignored",
+  "✖",
+  "#\\d+",
+  "Assert\\.",
+  "Integration test summary",
+  "^Passed:",
+  "^Failed:",
+  "passed - ",
+  "!ERROR",
+  "COMPILE",
+  "!!!!! COMPILE ERRORS",
+  "^err:",
+  "timeout",
+  "RESULT:",
+  "passed=",
+  "^-- ",
+]
+tail_lines = 60
+
+[[tests.docker-ms-app]]
+name = "keeps test summary and RESULT, drops BBj noise"
+input = """
+Test Summary:
+[bbj] initializing interpreter
+32 passed, 1 failed, 2 ignored
+RESULT: FAIL
+"""
+expected = """
+Test Summary:
+32 passed, 1 failed, 2 ignored
+RESULT: FAIL
+"""
+
+# ---------------------------------------------------------------------------
+# BBjUnitTest.bbj harness (direct invocation only — testing-*.sh / parser.py
+# are handled by the dedicated filters above; first match wins).
+#
+# The harness emits one ANSI-colored line per test method. On a healthy suite
+# the output is ~95% green checkmark (U+2713) pass lines and yellow circle
+# (U+26AC) ignored lines — pure noise. We drop those two and keep everything
+# else: class/suite headers (failure context), red cross (U+2716) failures
+# and their carat (U+2023) error-detail lines, the per-chunk run banners, the
+# pass/fail/ignored summary line, and every "!!! ... !!!" failure signal.
+# ---------------------------------------------------------------------------
+[filters.bbj-tests]
+description = "BBjUnitTest.bbj harness — drop passing/ignored per-test lines, keep failures + summary"
+# Narrowed to the BBjUnit harness only. The testing-*.sh / run-all-tests.sh /
+# parser.py command paths are owned upstream by the dedicated filters above
+# (bbjunit-parser, testing-integration, testing-java, testing-all) — first
+# match wins, so this filter handles only direct BBjUnitTest.bbj invocations
+# (e.g. /usr/local/basis/utils/bbjunittest/BBjUnitTest.bbj).
+match_command = 'BBjUnitTest\.bbj'
+strip_ansi = true
+filter_stderr = true
+strip_lines_matching = [
+  '^\s*\u2713 ',   # green check — passing test method
+  '^\s*\u26AC ',   # yellow circle — ignored/skipped test method
+]
+on_empty = "bbj-tests: no test output (suite produced nothing — check the BBj log)"
+
+[[tests.bbj-tests]]
+name = "keeps failures, headers and summary; drops passes"
+input = """
+
+Test Summary:
+
+* GLAccountGroupingTest [/lib/b/ihms-common-test/com/ame/ihms/gl/GLAccountGroupingTest.bbjt]
+   \u2713 addsAccountToGroup (3 ms)
+   \u2713 filtersByRange (2 ms)
+   \u2716 rejectsNegativeAmount (1 ms)
+     \u2023 #42 AssertionError: expected !ERROR but call returned 0
+   \u2713 accumulatesTotals (4 ms)
+
+32 passed, 1 failed, 0 ignored  (32/33 tests passed)
+"""
+expected = """
+
+Test Summary:
+
+* GLAccountGroupingTest [/lib/b/ihms-common-test/com/ame/ihms/gl/GLAccountGroupingTest.bbjt]
+   \u2716 rejectsNegativeAmount (1 ms)
+     \u2023 #42 AssertionError: expected !ERROR but call returned 0
+
+32 passed, 1 failed, 0 ignored  (32/33 tests passed)
+"""
+
+[[tests.bbj-tests]]
+name = "strips ANSI then drops the pass line, keeps the chunk banner"
+input = "\n=== Running TestSrcCommonSuite.bbjt via -CPihms_win -c/tmp/x.config.bbx (BBj output -> /tmp/BBjUnitTest/bbj-win.0.log) ===\n   \u001b[32m\u2713\u001b[0m \u001b[32mparsesIso\u001b[0m \u001b[33m(1 ms)\u001b[0m\n"
+expected = "\n=== Running TestSrcCommonSuite.bbjt via -CPihms_win -c/tmp/x.config.bbx (BBj output -> /tmp/BBjUnitTest/bbj-win.0.log) ===\n"
+
+[[tests.bbj-tests]]
+name = "keeps the no-XML failure dump untouched"
+input = """
+!!! win suite produced no XML at /tmp/BBjUnitTest/Result.win.0.xml (BBj exit 252) -- dumping log tail !!!
+--- last 80 lines of /tmp/BBjUnitTest/bbj-win.0.log ---
+!ERROR=252 java.lang.StackOverflowError
+--- (full log above; full file at /tmp/BBjUnitTest/bbj-win.0.log) ---
+"""
+expected = """
+!!! win suite produced no XML at /tmp/BBjUnitTest/Result.win.0.xml (BBj exit 252) -- dumping log tail !!!
+--- last 80 lines of /tmp/BBjUnitTest/bbj-win.0.log ---
+!ERROR=252 java.lang.StackOverflowError
+--- (full log above; full file at /tmp/BBjUnitTest/bbj-win.0.log) ---
+"""

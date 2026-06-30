@@ -1,2 +1,7 @@
 .DS_Store
 .aha/
+# Vendored upstream RTK reference tree — local audit reference only; do not
+# commit (contains a nested .git/ and bloats the repo).
+repo/
+# adopt.sh smoke-test scratch directory.
+.adopt-test/

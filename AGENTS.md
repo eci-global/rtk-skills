@@ -12,10 +12,13 @@ This is the source-of-truth toolkit ECI uses to roll out [RTK (Rust Token Killer
 | Path | What | Edit when |
 | --- | --- | --- |
 | `.claude/skills/rtk-{adoption,operations,audit}/SKILL.md` | Claude Code skills | RTK behavior or guidance changes |
+| `.claude/commands/{diagnose,test-routing}.md` | Claude Code slash commands (live troubleshooting, routing dry-run) | RTK diagnostic flow changes |
 | `cursor-rtk/.cursor/rules/{rtk,rtk-operations}.mdc` | Cursor rules (parity with the skills) | Always edit alongside the matching skill |
 | `.rtk/filters.toml` | This repo's own dogfood filters (0.43.x schema) | New niche CLI in this repo's workflow |
+| `catalog/` + `CONTRIBUTING.md` | Shared filter catalog + promote workflow | A team promotes a proven filter from a product repo |
+| `docs/COMMANDS.md` | Canonical list of RTK-filtered commands | RTK command coverage changes |
 | `examples/filters.toml`, `examples/snippets/` | Starter filter + drop-in AGENTS.md/CLAUDE.md blocks | Schema or guidance changes |
-| `scripts/` | `adopt.sh` / `adopt.ps1` (engineer bootstrap) + `validate.sh` / `check-parity.sh` / `check-links.sh` (gates) | Adoption flow or gate changes |
+| `scripts/` | `adopt.sh` / `adopt.ps1` (bootstrap) + `validate.sh` / `check-parity.sh` / `check-links.sh` / `check-installation.sh` (gates) | Adoption flow or gate changes |
 | `RTK_VERSION` | Single source of truth for the pinned version | Bumping RTK (triggers the CI `full` job) |
 | `dist/*.skill` | Generated portable zips | Never hand-edit — run `scripts/pack-skills.sh` |
 
@@ -31,6 +34,17 @@ A Claude skill and its Cursor rule must agree on RTK facts. When you change one,
 ```
 
 `check-parity.sh` fails the build if the skill/rule pair drifts or a filter regresses to the legacy `[[filter]]` schema — keep filters on `[filters.<name>]`.
+
+## Verify the right package (do this first)
+
+A crates.io project called "Rust Type Kit" also installs a binary named `rtk` — it is the **wrong tool**. Before any install or init step, confirm the correct package. This is the #1 adoption failure; the `rtk-audit` skill flags it.
+
+```bash
+rtk --version && rtk gain   # MUST both succeed. If `rtk gain` fails, the
+                            # crates.io "Rust Type Kit" is installed —
+                            # uninstall it and reinstall from Homebrew or
+                            # GitHub releases.
+```
 
 ## RTK in this repo
 

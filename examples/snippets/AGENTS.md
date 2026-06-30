@@ -24,6 +24,7 @@ rtk init --codex             # Codex (AGENTS.md + RTK.md)
 - If the hook is installed, commands are rewritten automatically — run them normally.
 - Native Windows: auto-rewrite is unavailable — prefix with `rtk` (`rtk git status`, `rtk test <cmd>`).
 - Tests: `rtk test <cmd>` (failures only). Long unknown output: `rtk err <cmd>` or `rtk summary <cmd>`.
+- Full list of RTK-filtered commands: see `docs/COMMANDS.md` in the rtk-skills toolkit.
 
 ### Bypass — Read/Grep/Glob do NOT go through RTK
 The hook covers shell/Bash tool calls only. Built-in Read/Grep/Glob and MCP outputs bypass RTK.

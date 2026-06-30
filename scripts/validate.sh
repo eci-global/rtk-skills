@@ -101,13 +101,79 @@ check "root README exists" test -f "$ROOT/README.md"
 check "cursor-rtk README exists" test -f "$ROOT/cursor-rtk/README.md"
 check "example filters.toml exists" test -f "$ROOT/examples/filters.toml"
 check "example filters.toml uses 0.43.x [filters. schema" grep -q '\[filters\.' "$ROOT/examples/filters.toml"
+check "example filters.toml has schema_version = 1" grep -q '^schema_version = 1' "$ROOT/examples/filters.toml"
 check "example filters.toml: no legacy [[filter]]" bash -c '! grep -q "\[\[filter\]\]" "$0"' "$ROOT/examples/filters.toml"
 check "dogfood .rtk/filters.toml exists" test -f "$ROOT/.rtk/filters.toml"
 check "dogfood .rtk/filters.toml uses [filters. schema" grep -q '\[filters\.' "$ROOT/.rtk/filters.toml"
+check "dogfood .rtk/filters.toml has schema_version = 1" grep -q '^schema_version = 1' "$ROOT/.rtk/filters.toml"
 check "AGENTS.md snippet exists" test -f "$ROOT/examples/snippets/AGENTS.md"
 check "CLAUDE.md snippet exists" test -f "$ROOT/examples/snippets/CLAUDE.md"
 check "snippets mention rtk trust" grep -q 'rtk trust' "$ROOT/examples/snippets/AGENTS.md"
 check "snippets mention Read/Grep/Glob bypass" grep -q 'Read/Grep/Glob' "$ROOT/examples/snippets/CLAUDE.md"
+
+echo
+echo "Filter catalog"
+check "catalog/README.md exists" test -f "$ROOT/catalog/README.md"
+check "catalog/README.md has filter index" grep -q 'Filter index' "$ROOT/catalog/README.md"
+check "catalog/_template/filters.toml exists" test -f "$ROOT/catalog/_template/filters.toml"
+check "catalog template uses 0.43.x [filters. schema" grep -q '\[filters\.' "$ROOT/catalog/_template/filters.toml"
+check "catalog template has schema_version = 1" grep -q '^schema_version = 1' "$ROOT/catalog/_template/filters.toml"
+check "catalog template: no legacy [[filter]]" bash -c '! grep -q "\[\[filter\]\]" "$0"' "$ROOT/catalog/_template/filters.toml"
+check "catalog template has inline test" grep -q '\[\[tests\.' "$ROOT/catalog/_template/filters.toml"
+check "CONTRIBUTING.md exists" test -f "$ROOT/CONTRIBUTING.md"
+check "CONTRIBUTING.md documents promote workflow" grep -q 'catalog/<team>/filters.toml' "$ROOT/CONTRIBUTING.md"
+
+# Every promoted catalog/<team>/filters.toml must meet the same schema bar as
+# the template: schema_version = 1, [filters.<name>] (not legacy [[filter]]),
+# and at least one inline [[tests.*]] so rtk verify --require-all can validate it.
+catalog_team_filters() {
+  find "$ROOT/catalog" -mindepth 2 -maxdepth 2 -type f -name 'filters.toml' \
+    ! -path "$ROOT/catalog/_template/*" 2>/dev/null
+}
+while IFS= read -r f; do
+  [[ -n "$f" ]] || continue
+  rel="${f#$ROOT/}"
+  check "$rel has schema_version = 1" grep -q '^schema_version = 1' "$f"
+  check "$rel uses [filters. schema" grep -q '\[filters\.' "$f"
+  check "$rel: no legacy [[filter]]" bash -c '! grep -q "\[\[filter\]\]" "$0"' "$f"
+  check "$rel has inline tests" grep -q '\[\[tests\.' "$f"
+done < <(catalog_team_filters)
+
+echo
+echo "Slash commands, docs & install check"
+check ".claude/commands/diagnose.md exists" test -f "$ROOT/.claude/commands/diagnose.md"
+check "diagnose.md mentions rtk init --show" grep -q 'rtk init --show' "$ROOT/.claude/commands/diagnose.md"
+check "diagnose.md mentions rtk gain" grep -q 'rtk gain' "$ROOT/.claude/commands/diagnose.md"
+check ".claude/commands/test-routing.md exists" test -f "$ROOT/.claude/commands/test-routing.md"
+check "test-routing.md mentions rtk --help/rewrite/discover" bash -c 'grep -qE "rtk --help|rtk rewrite|rtk discover" "$0"' "$ROOT/.claude/commands/test-routing.md"
+check "docs/COMMANDS.md exists" test -f "$ROOT/docs/COMMANDS.md"
+check "docs/COMMANDS.md mentions rtk gain" grep -q 'rtk gain' "$ROOT/docs/COMMANDS.md"
+check "docs/COMMANDS.md mentions Read/Grep/Glob bypass" grep -q 'Read/Grep/Glob' "$ROOT/docs/COMMANDS.md"
+check "check-installation.sh exists" test -f "$ROOT/scripts/check-installation.sh"
+check "check-installation.sh is executable" test -x "$ROOT/scripts/check-installation.sh"
+check "check-installation.sh mentions rtk gain" grep -q 'rtk gain' "$ROOT/scripts/check-installation.sh"
+check "check-installation.sh uses raw install URL (not blob)" bash -c '! grep -q "github.com/rtk-ai/rtk/blob/master/install.sh" "$0"' "$ROOT/scripts/check-installation.sh"
+check "adopt.sh seeds .claude/commands" grep -q '.claude/commands' "$ROOT/scripts/adopt.sh"
+# Claude Code resolves markdown links in command/skill content relative to the
+# workspace root, so parent-relative ](../  links climb out of the workspace and
+# break. Use workspace-root-relative paths (e.g. docs/COMMANDS.md) in .claude/*.
+check "no parent-relative markdown links in .claude/ (Claude Code resolves root-relative)" \
+  bash -c '! grep -rnE "\]\(\.\./" "$0/.claude/commands" "$0/.claude/skills" 2>/dev/null | grep -q .' "$ROOT"
+
+echo
+echo "Cross-doc consistency (skills <-> rules <-> snippets <-> docs)"
+check "AGENTS.md cites pinned 0.43.0" grep -q '0.43.0' "$ROOT/AGENTS.md"
+check "CLAUDE.md cites pinned 0.43.0" grep -q '0.43.0' "$ROOT/CLAUDE.md"
+check "AGENTS snippet cites pinned 0.43.0" grep -q '0.43.0' "$ROOT/examples/snippets/AGENTS.md"
+check "adoption skill has rtk init --global" grep -q 'rtk init --global' "$ROOT/.claude/skills/rtk-adoption/SKILL.md"
+check "operations rule has rtk init --global" grep -q 'rtk init --global' "$ROOT/cursor-rtk/.cursor/rules/rtk-operations.mdc"
+check "AGENTS snippet has rtk init --global" grep -q 'rtk init --global' "$ROOT/examples/snippets/AGENTS.md"
+check "docs/COMMANDS.md mentions rtk read bypass" grep -q 'rtk read' "$ROOT/docs/COMMANDS.md"
+check "operations skill mentions rtk read bypass" grep -q 'rtk read' "$ROOT/.claude/skills/rtk-operations/SKILL.md"
+check "CONTRIBUTING.md mentions rtk trust" grep -q 'rtk trust' "$ROOT/CONTRIBUTING.md"
+check "catalog README mentions rtk trust" grep -q 'rtk trust' "$ROOT/catalog/README.md"
+check "AGENTS.md has rtk gain verify block" grep -q 'Verify the right package' "$ROOT/AGENTS.md"
+check "CLAUDE.md has rtk gain verify block" grep -q 'Verify the right package' "$ROOT/CLAUDE.md"
 
 echo
 echo "Repo-self AI config (dogfood)"

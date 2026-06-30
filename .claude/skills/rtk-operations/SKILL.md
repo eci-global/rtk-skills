@@ -14,6 +14,7 @@ Authoritative docs (verify if anything seems stale):
 - Config: https://www.rtk-ai.app/docs/getting-started/configuration/
 - Troubleshooting: https://www.rtk-ai.app/guide/troubleshooting
 - Filter DSL: https://github.com/rtk-ai/rtk/blob/master/src/filters/README.md
+- Built-in command reference: `docs/COMMANDS.md` in this toolkit (which commands RTK filters, first-class vs TOML built-ins)
 
 ## Task 0 — Platform setup (if RTK is missing)
 

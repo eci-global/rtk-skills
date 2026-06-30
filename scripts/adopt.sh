@@ -177,6 +177,11 @@ if $DO_GLOBAL; then
     run cp -R "$ROOT/.claude/skills/$s" "$HOME/.claude/skills/"
   done
   echo "  skills: rtk-adoption, rtk-operations, rtk-audit -> ~/.claude/skills/"
+  if [[ -d "$ROOT/.claude/commands" ]]; then
+    run mkdir -p "$HOME/.claude/commands"
+    run cp -R "$ROOT/.claude/commands/." "$HOME/.claude/commands/" 2>/dev/null || true
+    echo "  commands: diagnose, test-routing -> ~/.claude/commands/"
+  fi
 fi
 
 # ---------- 4. seed repo ----------
@@ -203,6 +208,10 @@ if $DO_REPO; then
   for s in rtk-adoption rtk-operations rtk-audit; do
     run cp -R "$ROOT/.claude/skills/$s" "$REPO_TARGET/.claude/skills/"
   done
+  if [[ -d "$ROOT/.claude/commands" ]]; then
+    run mkdir -p "$REPO_TARGET/.claude/commands"
+    run cp -R "$ROOT/.claude/commands/." "$REPO_TARGET/.claude/commands/" 2>/dev/null || true
+  fi
   if [[ ! -f "$REPO_TARGET/.rtk/filters.toml" ]]; then
     run mkdir -p "$REPO_TARGET/.rtk"
     run cp "$ROOT/examples/filters.toml" "$REPO_TARGET/.rtk/filters.toml"

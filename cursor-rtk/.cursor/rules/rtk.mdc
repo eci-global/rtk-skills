@@ -25,6 +25,10 @@ This repo uses RTK (Rust Token Killer) to cut LLM token consumption 60-90% on te
 
 The hook covers shell/Bash tool calls only — built-in Read/Grep/Glob and MCP outputs are NOT filtered. Prefer shell `rg` / `cat` / `find` or `rtk read` / `rtk grep` / `rtk find` so output is compacted and counted toward savings. Project-local filters in `.rtk/filters.toml` require `rtk trust` once after cloning (0.43.x security gate).
 
+## Hook mechanics
+
+`rtk init` installs a **rewrite** hook (transparent command replacement) as a native binary registered in agent settings — not a `.claude/hooks/rtk-rewrite.sh` script. `rtk init --show` is the source of truth (`[ok]` markers). The hook is fail-open (never blocks) and covers shell/Bash only. Set `RTK_HOOK_AUDIT=1` for a local audit trail of rewrites during security review.
+
 ## Output hygiene
 
 Do not paste large raw command output into chat or files; reference the filtered summary or the tee log path. Repo-specific filter overrides live in `.rtk/filters.toml`.

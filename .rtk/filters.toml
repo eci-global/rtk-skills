@@ -8,6 +8,8 @@
 # After cloning, run `rtk trust` once so project-local filters are honored
 # (0.43.x security gate). Schema: https://github.com/rtk-ai/rtk/blob/master/src/filters/README.md
 
+schema_version = 1
+
 [filters.shellcheck]
 description = "Compact shellcheck output: keep the location line and SC finding, drop the echoed source line"
 match_command = "^shellcheck\\b"
