@@ -48,6 +48,17 @@ jobs:
         run: ./scripts/check-parity.sh
       - name: Link check
         run: ./scripts/check-links.sh
+      - name: adopt.sh dry-run (no RTK)
+        run: ./scripts/adopt.sh --dry-run -y --repo /tmp/fake-prod
+
+  windows:
+    name: Windows adopt.ps1 (dry-run, no RTK)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: adopt.ps1 dry-run
+        shell: pwsh
+        run: ./scripts/adopt.ps1 -DryRun -Yes -Repo $env:RUNNER_TEMP\fake-prod
 
   full:
     name: Full validation (pinned RTK)

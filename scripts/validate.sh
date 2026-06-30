@@ -89,6 +89,11 @@ check "adopt.sh supports --dry-run" grep -q -- '--dry-run' "$ROOT/scripts/adopt.
 check "adopt.sh supports --scope" grep -q -- '--scope' "$ROOT/scripts/adopt.sh"
 check "adopt.sh supports --no-trust" grep -q -- '--no-trust' "$ROOT/scripts/adopt.sh"
 check "adopt.sh pins RTK_VERSION" grep -q 'RTK_VERSION' "$ROOT/scripts/adopt.sh"
+check "adopt.ps1 exists (native Windows)" test -f "$ROOT/scripts/adopt.ps1"
+check "adopt.ps1 inits both agents" bash -c 'grep -q -- "--global" "$0" && grep -q -- "--agent" "$0" && grep -q -- "cursor" "$0"' "$ROOT/scripts/adopt.ps1"
+check "adopt.ps1 supports -DryRun" grep -q -- '-DryRun' "$ROOT/scripts/adopt.ps1"
+check "adopt.ps1 uses APPDATA config path" grep -q 'APPDATA' "$ROOT/scripts/adopt.ps1"
+check "adopt.ps1 checksum-verifies install" grep -q 'Get-FileHash' "$ROOT/scripts/adopt.ps1"
 
 echo
 echo "Examples & docs"

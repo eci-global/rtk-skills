@@ -26,7 +26,8 @@ rtk-skills/
 │   ├── filters.toml             # starter .rtk/filters.toml template (0.42.x schema)
 │   └── snippets/                # drop-in AGENTS.md / CLAUDE.md blocks for product repos
 ├── scripts/
-│   ├── adopt.sh                 # one-command engineer adoption (install + init + seed + govern + verify)
+│   ├── adopt.sh                 # one-command engineer adoption — macOS/Linux/WSL
+│   ├── adopt.ps1                # one-command engineer adoption — native Windows (PowerShell)
 │   ├── validate.sh              # structure + artifact smoke test (no RTK needed)
 │   ├── check-parity.sh          # fail if Claude skills and Cursor rules drift
 │   ├── check-links.sh           # verify http(s) links resolve
@@ -85,7 +86,7 @@ One command:
 Then **restart Claude Code and Cursor**, run a few commands, and check `rtk gain` (non-zero = savings flowing).
 
 Flags: `--dry-run` · `--scope global|repo|both` (default `both`) · `--repo <path>` (default `$PWD`) · `--no-trust` · `--yes`.
-Native Windows: run inside WSL (the bash bootstrap covers macOS, Linux, WSL).
+**Native Windows (PowerShell):** `pwsh ./scripts/adopt.ps1` runs the same seven steps — Windows-zip install with SHA-256 checksum, `%APPDATA%` config, user-PATH + user-env-var governance. Native Windows has no auto-rewrite hook, so agents prefix `rtk` per the committed rules (rules-only mode). WSL2 engineers use `adopt.sh`.
 
 ### 2. Validate the package (maintainers)
 
@@ -186,6 +187,7 @@ rtk untrust        # revoke
 | Check | Expected |
 | --- | --- |
 | `./scripts/adopt.sh --dry-run` | Predicts every step, writes nothing |
+| `pwsh ./scripts/adopt.ps1 -DryRun` | Windows: predicts every step, writes nothing |
 | `./scripts/validate.sh` | All package checks pass (no RTK needed) |
 | `./scripts/check-parity.sh` | Claude skills ↔ Cursor rules agree on RTK 0.42.x facts |
 | `./scripts/check-links.sh` | All http(s) links resolve |

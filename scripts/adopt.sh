@@ -129,23 +129,28 @@ if $need_install; then
     [[ ":$PATH:" != *":$HOME/.local/bin:"* ]] && export PATH="$HOME/.local/bin:$PATH"
   fi
 fi
-if ! command -v rtk >/dev/null 2>&1; then
-  echo "  FAIL: rtk still not on PATH after install. Open a new shell or add ~/.local/bin to PATH." >&2
-  exit 4
-fi
-echo "  rtk: $(rtk --version)"
-if ! rtk gain >/dev/null 2>&1; then
-  echo "  warn: 'rtk gain' did not succeed. If 'rtk --version' works, the wrong crates.io 'rtk'"
-  echo "        ('Rust Type Kit') may be installed — uninstall it and reinstall from Homebrew or"
-  echo "        GitHub releases. (gain can also fail when the tracking DB is read-only, e.g. some"
-  echo "        sandboxes — not fatal.)"
+if command -v rtk >/dev/null 2>&1; then
+  echo "  rtk: $(rtk --version)"
+  if ! rtk gain >/dev/null 2>&1; then
+    echo "  warn: 'rtk gain' did not succeed. If 'rtk --version' works, the wrong crates.io 'rtk'"
+    echo "        ('Rust Type Kit') may be installed — uninstall it and reinstall from Homebrew or"
+    echo "        GitHub releases. (gain can also fail when the tracking DB is read-only, e.g. some"
+    echo "        sandboxes — not fatal.)"
+  fi
+else
+  if $DRY_RUN; then
+    echo "  [dry-run] rtk not yet installed (would install $RTK_VERSION)"
+  else
+    echo "  FAIL: rtk still not on PATH after install. Open a new shell or add ~/.local/bin to PATH." >&2
+    exit 4
+  fi
 fi
 
 # ---------- 2. init both agents ----------
 rtk_init() {
   if $DRY_RUN; then
-    echo "  [dry-run] rtk $* --dry-run"
-    rtk "$@" --dry-run 2>&1 | sed 's/^/    /' || true
+    echo "  [dry-run] rtk $*"
+    if command -v rtk >/dev/null 2>&1; then rtk "$@" --dry-run 2>&1 | sed 's/^/    /' || true; fi
   else
     rtk "$@"
   fi
