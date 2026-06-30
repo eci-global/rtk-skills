@@ -109,6 +109,16 @@ check "CLAUDE.md snippet exists" test -f "$ROOT/examples/snippets/CLAUDE.md"
 check "snippets mention rtk trust" grep -q 'rtk trust' "$ROOT/examples/snippets/AGENTS.md"
 check "snippets mention Read/Grep/Glob bypass" grep -q 'Read/Grep/Glob' "$ROOT/examples/snippets/CLAUDE.md"
 
+echo
+echo "Repo-self AI config (dogfood)"
+check "root AGENTS.md exists" test -f "$ROOT/AGENTS.md"
+check "root CLAUDE.md exists" test -f "$ROOT/CLAUDE.md"
+check "root CLAUDE.md mentions rtk trust" grep -q 'rtk trust' "$ROOT/CLAUDE.md"
+check "root AGENTS.md mentions rtk trust" grep -q 'rtk trust' "$ROOT/AGENTS.md"
+check ".cursorignore exists" test -f "$ROOT/.cursorignore"
+check ".cursorignore excludes dist/" grep -q '^dist/' "$ROOT/.cursorignore"
+check "dogfood .rtk/filters.toml has rtk-gates filter" grep -q '\[filters\.rtk-gates\]' "$ROOT/.rtk/filters.toml"
+
 if $FULL; then
   echo
   echo "RTK install (--full)"

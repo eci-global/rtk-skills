@@ -29,3 +29,51 @@ expected = '''
 In scripts/validate.sh line 5:
     ^--- SC2086 (info): Double quote to prevent globbing and word splitting.
 '''
+
+# This repo's own maintainer gates (validate.sh / check-parity.sh / check-links.sh)
+# print one "  PASS  ..." line per check — dozens of lines an agent rarely needs.
+# Keep only the actionable signal: failing checks, the Results summary, and the
+# parity/links failure banners. On an all-green run this collapses to the single
+# "Results: N passed, 0 failed" line.
+[filters.rtk-gates]
+description = "Compact rtk-skills gate output: keep FAIL lines, the Results summary, and failure banners; drop PASS lines"
+match_command = "(validate|check-parity|check-links)\\.sh\\b"
+strip_ansi = true
+keep_lines_matching = [
+  "FAIL",
+  "^Results:",
+  "BROKEN",
+  "^Broken links",
+]
+on_empty = "rtk-gates: all checks passed"
+
+[[tests.rtk-gates]]
+name = "keeps FAIL + Results, drops PASS and separators"
+input = '''
+RTK Skills validation
+=====================
+
+Claude skills
+  PASS  rtk-adoption/SKILL.md exists
+  FAIL  rtk-audit has frontmatter name
+=====================
+Results: 47 passed, 1 failed
+'''
+expected = '''
+  FAIL  rtk-audit has frontmatter name
+Results: 47 passed, 1 failed
+'''
+
+[[tests.rtk-gates]]
+name = "keeps parity BROKEN banner"
+input = '''
+  PASS  [init flag cursor] rtk-operations.mdc
+  FAIL  [tee recovery] rtk.mdc (missing '~/.local/share/rtk/tee/')
+Results: 29 passed, 1 failed
+Parity BROKEN — fix the skill/rule drift listed above.
+'''
+expected = '''
+  FAIL  [tee recovery] rtk.mdc (missing '~/.local/share/rtk/tee/')
+Results: 29 passed, 1 failed
+Parity BROKEN — fix the skill/rule drift listed above.
+'''

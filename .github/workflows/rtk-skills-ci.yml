@@ -79,6 +79,8 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Confirm correct package
         run: rtk --version
+      - name: Prepare agent config dirs (fresh runner)
+        run: mkdir -p "$HOME/.claude" "$HOME/.config/rtk"
       - name: Install Claude hook (so validate --full hook check passes)
         run: rtk init -g --auto-patch
       - name: Smoke — populate tracking so rtk gain has data
