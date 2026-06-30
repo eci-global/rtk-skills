@@ -78,6 +78,7 @@ pair "tee recovery"        "~/.local/share/rtk/tee/"    "$OPERATIONS_SKILL" "$RT
 pair "exclude_commands"    "exclude_commands"           "$OPERATIONS_SKILL" "$RTK_OPS_MDC"
 pair "bypass: rtk read"    "rtk read"                   "$OPERATIONS_SKILL" "$RTK_OPS_MDC"
 pair "bypass: rtk grep"    "rtk grep"                   "$OPERATIONS_SKILL" "$RTK_OPS_MDC"
+pair "bypass: rtk find"    "rtk find"                   "$OPERATIONS_SKILL" "$RTK_OPS_MDC"
 
 echo
 echo "Filter schema (0.43.x [filters.<name>]; legacy [[filter]] must be absent)"

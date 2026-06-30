@@ -47,6 +47,10 @@ jobs:
       - name: Skill/rule parity
         run: ./scripts/check-parity.sh
       - name: Link check
+        # Skip on fork PRs: check-links.sh curls every URL found in repo content,
+        # so an untrusted fork could drive outbound requests from the runner (SSRF).
+        # Still runs on pushes to main and same-repo PRs.
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         run: ./scripts/check-links.sh
       - name: adopt.sh dry-run (no RTK)
         run: ./scripts/adopt.sh --dry-run -y --repo /tmp/fake-prod

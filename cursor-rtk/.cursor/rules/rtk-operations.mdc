@@ -45,7 +45,7 @@ Verify with BOTH `rtk --version` and `rtk gain` (crates.io name-collision packag
 5. Isolation test → `rtk init --uninstall`, reproduce, re-enable; report the filter bug rather than abandoning RTK.
 6. Audit trail of hook rewrites → `RTK_HOOK_AUDIT=1`.
 
-Structural limit: the hook covers **shell/Bash tool calls only** — built-in Read/Grep/Glob and MCP tool outputs bypass RTK. Prefer `rtk read` / `rtk grep` or shell equivalents.
+Structural limit: the hook covers **shell/Bash tool calls only** — built-in Read/Grep/Glob and MCP tool outputs bypass RTK. Prefer shell `rg` / `cat` / `find` or `rtk read` / `rtk grep` / `rtk find` for those paths.
 
 ## Custom filters (highest leverage at ECI)
 

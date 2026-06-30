@@ -254,8 +254,11 @@ if ($DoRepo) {
   } elseif ($DryRun) {
     Write-Host "  [dry-run] rtk trust in $RepoAbs"
   } else {
-    "y" | & rtk trust 2>&1 | Select-Object -Last 3 | Write-Host
-    if ($LASTEXITCODE -ne 0) { Write-Host "  (rtk trust did not complete - run it manually in $RepoAbs)" }
+    Push-Location $RepoAbs
+    try {
+      "y" | & rtk trust 2>&1 | Select-Object -Last 3 | Write-Host
+      if ($LASTEXITCODE -ne 0) { Write-Host "  (rtk trust did not complete - run it manually in $RepoAbs)" }
+    } finally { Pop-Location }
   }
 }
 
@@ -267,7 +270,10 @@ if ($DryRun) {
   Write-Host "  rtk init --show:"
   & rtk init --show 2>&1 | ForEach-Object { "    $_" } | Write-Host
   Write-Host "  rtk verify:"
-  & rtk verify 2>&1 | Select-Object -Last 6 | ForEach-Object { "    $_" } | Write-Host
+  if ($DoRepo) { Push-Location $RepoAbs }
+  try {
+    & rtk verify 2>&1 | Select-Object -Last 6 | ForEach-Object { "    $_" } | Write-Host
+  } finally { if ($DoRepo) { Pop-Location } }
   Write-Host ""
   Write-Host "Ready-to-go check:"
   $show = & rtk init --show 2>$null | Out-String

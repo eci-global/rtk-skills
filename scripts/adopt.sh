@@ -131,6 +131,14 @@ if $need_install; then
 fi
 if command -v rtk >/dev/null 2>&1; then
   echo "  rtk: $(rtk --version)"
+  ver_now="$(rtk --version 2>/dev/null || echo none)"
+  if [[ "$ver_now" != *"$RTK_VERSION"* ]]; then
+    echo "  warn: rtk is '$ver_now' but this toolkit pins $RTK_VERSION."
+    if [[ "$PLATFORM" == macos ]]; then
+      echo "        'brew install rtk' tracks latest; to pin exactly, install the v$RTK_VERSION"
+      echo "        release (RTK_VERSION=v$RTK_VERSION via install.sh) or a versioned brew formula."
+    fi
+  fi
   if ! rtk gain >/dev/null 2>&1; then
     echo "  warn: 'rtk gain' did not succeed. If 'rtk --version' works, the wrong crates.io 'rtk'"
     echo "        ('Rust Type Kit') may be installed — uninstall it and reinstall from Homebrew or"
@@ -262,7 +270,11 @@ else
   echo "  rtk init --show:"
   rtk init --show 2>&1 | sed 's/^/    /' || true
   echo "  rtk verify:"
-  rtk verify 2>&1 | tail -6 | sed 's/^/    /' || true
+  if $DO_REPO; then
+    ( cd "$REPO_TARGET" && rtk verify ) 2>&1 | tail -6 | sed 's/^/    /' || true
+  else
+    rtk verify 2>&1 | tail -6 | sed 's/^/    /' || true
+  fi
   echo
   echo "Ready-to-go check:"
   show="$(rtk init --show 2>/dev/null || true)"
