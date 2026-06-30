@@ -50,6 +50,11 @@ check "rtk-operations/SKILL.md exists" test -f "$ROOT/.claude/skills/rtk-operati
 check "rtk-operations/SKILL.md is markdown (not zip)" is_markdown "$ROOT/.claude/skills/rtk-operations/SKILL.md"
 check "rtk-operations/SKILL.md is not a zip archive" is_not_zip "$ROOT/.claude/skills/rtk-operations/SKILL.md"
 check "rtk-operations has frontmatter name" grep -q '^name: rtk-operations' "$ROOT/.claude/skills/rtk-operations/SKILL.md"
+check "rtk-audit/SKILL.md exists" test -f "$ROOT/.claude/skills/rtk-audit/SKILL.md"
+check "rtk-audit/SKILL.md is markdown (not zip)" is_markdown "$ROOT/.claude/skills/rtk-audit/SKILL.md"
+check "rtk-audit has frontmatter name" grep -q '^name: rtk-audit' "$ROOT/.claude/skills/rtk-audit/SKILL.md"
+check "rtk-audit uses rtk verify (no rtk doctor)" grep -q 'rtk verify' "$ROOT/.claude/skills/rtk-audit/SKILL.md"
+check "rtk-audit has fixed Hook status section" grep -q '### Hook status' "$ROOT/.claude/skills/rtk-audit/SKILL.md"
 check "no stale skill.md zip files" bash -c '! find "$0/.claude/skills" -name "skill.md" 2>/dev/null | grep -q .' "$ROOT"
 
 echo
@@ -63,10 +68,31 @@ check "rtk-operations mentions Windows config path" grep -q 'APPDATA' "$ROOT/cur
 check "root README mentions Windows" grep -q 'Windows' "$ROOT/README.md"
 
 echo
+echo "CI & parity scripts"
+check "RTK_VERSION pin exists" test -f "$ROOT/RTK_VERSION"
+check "RTK_VERSION is 0.42.4" grep -q '^0.42.4$' "$ROOT/RTK_VERSION"
+check "check-parity.sh exists" test -f "$ROOT/scripts/check-parity.sh"
+check "check-parity.sh is executable" test -x "$ROOT/scripts/check-parity.sh"
+check "check-links.sh exists" test -f "$ROOT/scripts/check-links.sh"
+check "check-links.sh is executable" test -x "$ROOT/scripts/check-links.sh"
+check "CI workflow exists" test -f "$ROOT/.github/workflows/rtk-skills-ci.yml"
+check "CI has package job (no RTK)" grep -q 'Package checks (no RTK)' "$ROOT/.github/workflows/rtk-skills-ci.yml"
+check "CI has full job (pinned RTK)" grep -q 'Full validation (pinned RTK)' "$ROOT/.github/workflows/rtk-skills-ci.yml"
+check "CI pins RTK via install.sh" grep -q 'install.sh' "$ROOT/.github/workflows/rtk-skills-ci.yml"
+
+echo
 echo "Examples & docs"
 check "root README exists" test -f "$ROOT/README.md"
 check "cursor-rtk README exists" test -f "$ROOT/cursor-rtk/README.md"
 check "example filters.toml exists" test -f "$ROOT/examples/filters.toml"
+check "example filters.toml uses 0.42.x [filters. schema" grep -q '\[filters\.' "$ROOT/examples/filters.toml"
+check "example filters.toml: no legacy [[filter]]" bash -c '! grep -q "\[\[filter\]\]" "$0"' "$ROOT/examples/filters.toml"
+check "dogfood .rtk/filters.toml exists" test -f "$ROOT/.rtk/filters.toml"
+check "dogfood .rtk/filters.toml uses [filters. schema" grep -q '\[filters\.' "$ROOT/.rtk/filters.toml"
+check "AGENTS.md snippet exists" test -f "$ROOT/examples/snippets/AGENTS.md"
+check "CLAUDE.md snippet exists" test -f "$ROOT/examples/snippets/CLAUDE.md"
+check "snippets mention rtk trust" grep -q 'rtk trust' "$ROOT/examples/snippets/AGENTS.md"
+check "snippets mention Read/Grep/Glob bypass" grep -q 'Read/Grep/Glob' "$ROOT/examples/snippets/CLAUDE.md"
 
 if $FULL; then
   echo

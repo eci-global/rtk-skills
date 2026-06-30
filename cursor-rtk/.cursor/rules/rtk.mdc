@@ -12,7 +12,7 @@ This repo uses RTK (Rust Token Killer) to cut LLM token consumption 60-90% on te
 
 - If the RTK hook is installed, commands are rewritten automatically — run them normally.
 - **Native Windows:** auto-rewrite hook is unavailable — always prefix commands with `rtk` (see below).
-- If output looks raw/verbose (hook absent or Windows native), prefix explicitly: `rtk git status`, `rtk git diff`, `rtk grep <pattern> .`, `rtk ls`, `rtk read <file>`.
+- If output looks raw/verbose (hook absent or Windows native), prefix explicitly: `rtk git status`, `rtk git diff`, `rtk grep <pattern> .`, `rtk find <path>`, `rtk ls`, `rtk read <file>`.
 - Tests: run via `rtk test <command>` (or `rtk jest` / `rtk vitest` / `rtk pytest`) — failures only.
 - Unknown/uncovered commands with long output: `rtk err <cmd>` (errors only) or `rtk summary <cmd>`.
 
@@ -20,6 +20,10 @@ This repo uses RTK (Rust Token Killer) to cut LLM token consumption 60-90% on te
 
 - After a **failed** command, RTK prints a tee log path — read that file instead of re-running (Linux/macOS/WSL: `~/.local/share/rtk/tee/`; Windows: `%LOCALAPPDATA%\rtk\tee\`).
 - Need raw output once: `RTK_DISABLED=1 <command>`. Never suggest uninstalling RTK to work around one command.
+
+## Read/Grep/Glob bypass (structural)
+
+The hook covers shell/Bash tool calls only — built-in Read/Grep/Glob and MCP outputs are NOT filtered. Prefer shell `rg` / `cat` / `find` or `rtk read` / `rtk grep` / `rtk find` so output is compacted and counted toward savings. Project-local filters in `.rtk/filters.toml` require `rtk trust` once after cloning (0.42.x security gate).
 
 ## Output hygiene
 

@@ -25,4 +25,5 @@ pack() {
 echo "Packing Claude skills to dist/"
 pack rtk-adoption
 pack rtk-operations
+pack rtk-audit
 echo "Done."

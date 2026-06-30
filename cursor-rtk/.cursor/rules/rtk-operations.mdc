@@ -23,7 +23,7 @@ Authoritative docs (RTK releases fast — verify against these, not memory):
 Verify with BOTH `rtk --version` and `rtk gain` (crates.io name-collision package also installs as `rtk`).
 
 1. Preview: `rtk init -g --agent cursor --dry-run -v` — prints every file it would patch, writes nothing.
-2. Apply: `rtk init -g --agent cursor` (hooks.json preToolUse rewrite), then restart Cursor. On **native Windows**, hook auto-rewrite is unavailable — committed `rtk.mdc` rules tell the agent to prefix `rtk` explicitly.
+2. Apply: `rtk init -g --agent cursor` (Cursor, hooks.json preToolUse rewrite) or `rtk init --global` (Claude Code, settings.json), then restart the agent. On **native Windows**, hook auto-rewrite is unavailable — committed `rtk.mdc` rules tell the agent to prefix `rtk` explicitly.
 3. ECI governance defaults in config.toml — Linux/WSL: `~/.config/rtk/config.toml`; macOS: `~/Library/Application Support/rtk/config.toml`; Windows: `%APPDATA%\rtk\config.toml` (create with `rtk config --create`). Set `[telemetry] enabled = false` (plus `RTK_TELEMETRY_DISABLED=1`), `[tee] mode = "failures"` (use `"never"` in sensitive repos), exclude interactive commands: `[hooks] exclude_commands = ["git rebase", "git cherry-pick", "docker exec", "^psql"]`.
 
 ## Savings & ROI reporting
@@ -31,11 +31,14 @@ Verify with BOTH `rtk --version` and `rtk gain` (crates.io name-collision packag
 - `rtk gain` (summary) · `--daily` / `--weekly` / `--graph` / `--history` (trends) · `--all --format json` (dashboard export).
 - `rtk discover --all --since 7` — commands that ran WITHOUT rtk = missed savings; triage by frequency × output size.
 - `rtk session` — adoption rate per agent session (Claude Code).
+- `rtk verify` — hook integrity + TOML filter inline tests (`PASS`/`FAIL`, `N/N tests passed`); `--require-all` gates CI.
+- `rtk learn` — recurring CLI corrections mined from error history (`-w/--write-rules` → `.claude/rules/cli-corrections.md`).
+- `rtk cc-economics` — Claude Code spending (ccusage) vs savings (rtk) in one view.
 - ROI statement = tokens saved × blended input-token price, plus context headroom (longer sessions before limits).
 
 ## Troubleshooting ladder (least destructive first)
 
-1. Missing detail after a FAILED command → read the tee log path printed in the output.
+1. Missing detail after a FAILED command → read the tee log path printed in the output (Linux/macOS/WSL: `~/.local/share/rtk/tee/`; Windows: `%LOCALAPPDATA%\rtk\tee\`).
 2. One-off raw output → `RTK_DISABLED=1 <cmd>`.
 3. Recurring problem command → add to `[hooks] exclude_commands`.
 4. Built-in filter too aggressive for this repo → override in `.rtk/filters.toml`.
@@ -48,4 +51,6 @@ Structural limit: the hook covers **shell/Bash tool calls only** — built-in Re
 
 Scopes: global filters template (created by `rtk init`) vs repo `.rtk/filters.toml` (committed — preferred; behavior travels with the code). Niche toolchains (BBj/MarkSystems build/test output) have zero built-in coverage until a filter exists.
 
-Process: (1) fetch the current filter DSL README first — never write filter TOML from memory; (2) capture real success AND failure output samples; (3) keep what the agent needs (what changed, what failed, where), cut the rest; (4) validate signal preserved before committing. For uncovered commands with long output, try `rtk proxy <cmd>` (passthrough + tracking) before writing a filter. Safety rule: when in doubt, keep failure-path information and cut success-path verbosity.
+Schema (0.42.x): `[filters.<name>]` with `match_command` (regex) + action fields (`strip_lines_matching`, `keep_lines_matching`, `replace`, `max_lines`, `on_empty`, …) and `[[tests.<name>]]` inline cases — NOT the legacy `[[filter]]` shape.
+
+Process: (1) fetch the current filter DSL README first — never write filter TOML from memory; (2) capture real success AND failure output samples; (3) keep what the agent needs (what changed, what failed, where), cut the rest; (4) add an inline `[[tests.<name>]]` case and validate with `rtk verify` (signal preserved, tests pass); (5) commit `.rtk/filters.toml` and run `rtk trust` in the repo so project-local filters are honored (0.42.x security gate) — `rtk untrust` revokes, `rtk trust --list` audits. CI gate: `rtk verify --require-all` fails if any filter lacks inline tests. For uncovered commands with long output, try `rtk proxy <cmd>` (passthrough + tracking) before writing a filter. Safety rule: when in doubt, keep failure-path information and cut success-path verbosity.
