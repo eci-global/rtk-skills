@@ -1,0 +1,13 @@
+# Cursor context boundary for rtk-skills.
+# Keeps AI indexing focused on source-of-truth files (skills, rules, scripts,
+# examples) and out of generated/binary/state noise — saves tokens and avoids
+# the agent reading stale or non-text artifacts. Local-only; GitHub CI ignores this.
+
+# Generated portable skill zips (binary) — regenerate via scripts/pack-skills.sh.
+dist/
+
+# AHA agent state (also git-ignored).
+.aha/
+
+# macOS noise.
+.DS_Store

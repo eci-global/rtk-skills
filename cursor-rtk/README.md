@@ -23,6 +23,8 @@ cursor-rtk/.cursor/rules/
 2. Commit it. Every colleague and CI runner on the repo gets the rules automatically.
 3. Each developer runs once per machine: `rtk init -g --agent cursor` → restart Cursor
    (installs the hooks.json preToolUse rewrite so commands are filtered transparently).
+4. If the repo commits `.rtk/filters.toml`, run `rtk trust` once after cloning so the
+   project-local filters are honored (0.43.x security gate).
 
 **Windows note:** WSL developers init from inside WSL (full hook support). Native Windows
 developers still commit the rules — agents prefix `rtk` explicitly because auto-rewrite
@@ -57,12 +59,16 @@ the rule set itself stays token-cheap, consistent with its purpose.
 
 1. Restart Cursor, open a repo with the rules committed.
 2. Ask the agent to run `git status` → output should be compact (3 lines, not 40).
-3. `rtk gain` → savings counter increments.
-4. Ask the agent "how much have we saved with RTK this week?" → the operations rule
+3. `rtk verify` → `PASS` hook integrity + `N/N tests passed` for filters.
+4. `rtk gain` → savings counter increments.
+5. Ask the agent "how much have we saved with RTK this week?" → the operations rule
    should load and produce a `rtk gain --weekly` report.
+6. For a structured baseline before fleet rollout, run the `rtk-audit` skill (Claude Code)
+   — see the root README's "Adoption order — audit first" section.
 
-Maintained alongside: `.claude/skills/rtk-adoption` / `rtk-operations` (Claude Code) and
-the RTK Enterprise Adoption Guide. Keep the three in sync when RTK behavior changes —
-RTK versions move fast (docs said 0.28.x; live installer currently ships 0.42.x).
+Maintained alongside: `.claude/skills/rtk-adoption` / `rtk-operations` / `rtk-audit`
+(Claude Code) and the RTK Enterprise Adoption Guide. Keep them in sync when RTK behavior
+changes — the pinned version lives in `RTK_VERSION` at the repo root (currently 0.43.0).
+Run `./scripts/check-parity.sh` to enforce Claude ↔ Cursor parity.
 
 Run `./scripts/validate.sh` from the repo root before sharing with teams.

@@ -1,0 +1,79 @@
+# .rtk/filters.toml — rtk-skills repo dogfood filter (RTK 0.43.x schema).
+#
+# This repo eats its own dog food: it ships a project-local RTK filter so the
+# toolkit is also a worked example. The filter targets `shellcheck`, a linter
+# this repo's bash scripts can be checked with and which has no built-in RTK
+# filter — exactly the niche case the operations skill says is highest-leverage.
+#
+# After cloning, run `rtk trust` once so project-local filters are honored
+# (0.43.x security gate). Schema: https://github.com/rtk-ai/rtk/blob/master/src/filters/README.md
+
+[filters.shellcheck]
+description = "Compact shellcheck output: keep the location line and SC finding, drop the echoed source line"
+match_command = "^shellcheck\\b"
+strip_ansi = true
+keep_lines_matching = [
+  "^In .+ line [0-9]+:",
+  "SC[0-9]+",
+]
+on_empty = "shellcheck: no findings"
+
+[[tests.shellcheck]]
+name = "keeps location + SC finding, drops echoed source line"
+input = '''
+In scripts/validate.sh line 5:
+    ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+    ^--- SC2086 (info): Double quote to prevent globbing and word splitting.
+'''
+expected = '''
+In scripts/validate.sh line 5:
+    ^--- SC2086 (info): Double quote to prevent globbing and word splitting.
+'''
+
+# This repo's own maintainer gates (validate.sh / check-parity.sh / check-links.sh)
+# print one "  PASS  ..." line per check — dozens of lines an agent rarely needs.
+# Keep only the actionable signal: failing checks, the Results summary, and the
+# parity/links failure banners. On an all-green run this collapses to the single
+# "Results: N passed, 0 failed" line.
+[filters.rtk-gates]
+description = "Compact rtk-skills gate output: keep FAIL lines, the Results summary, and failure banners; drop PASS lines"
+match_command = "(validate|check-parity|check-links)\\.sh\\b"
+strip_ansi = true
+keep_lines_matching = [
+  "FAIL",
+  "^Results:",
+  "BROKEN",
+  "^Broken links",
+]
+on_empty = "rtk-gates: all checks passed"
+
+[[tests.rtk-gates]]
+name = "keeps FAIL + Results, drops PASS and separators"
+input = '''
+RTK Skills validation
+=====================
+
+Claude skills
+  PASS  rtk-adoption/SKILL.md exists
+  FAIL  rtk-audit has frontmatter name
+=====================
+Results: 47 passed, 1 failed
+'''
+expected = '''
+  FAIL  rtk-audit has frontmatter name
+Results: 47 passed, 1 failed
+'''
+
+[[tests.rtk-gates]]
+name = "keeps parity BROKEN banner"
+input = '''
+  PASS  [init flag cursor] rtk-operations.mdc
+  FAIL  [tee recovery] rtk.mdc (missing '~/.local/share/rtk/tee/')
+Results: 29 passed, 1 failed
+Parity BROKEN — fix the skill/rule drift listed above.
+'''
+expected = '''
+  FAIL  [tee recovery] rtk.mdc (missing '~/.local/share/rtk/tee/')
+Results: 29 passed, 1 failed
+Parity BROKEN — fix the skill/rule drift listed above.
+'''

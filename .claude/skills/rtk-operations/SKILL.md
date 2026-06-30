@@ -24,7 +24,7 @@ Authoritative docs (verify if anything seems stale):
 | Windows (WSL) | install.sh inside WSL | `~/.config/rtk/config.toml` |
 | Windows (native) | [GitHub release zip](https://github.com/rtk-ai/rtk/releases) → PATH | `%APPDATA%\rtk\config.toml` |
 
-Verify: `rtk --version` AND `rtk gain`. Preview init: `rtk init -g --agent cursor --dry-run -v`.
+Verify: `rtk --version` AND `rtk gain`. Preview init: `rtk init --global --dry-run -v` (Claude Code) or `rtk init -g --agent cursor --dry-run -v` (Cursor).
 
 **Windows:** WSL = full hook support. Native Windows = filters work but agents must prefix `rtk` explicitly (no auto-rewrite). Full guide: adoption skill `references/windows.md`.
 
@@ -41,7 +41,7 @@ rtk gain --history              # recent command-level history
 rtk gain --all --format json    # machine-readable export for dashboards
 ```
 
-To turn this into an ROI statement: `tokens_saved × blended input-token price` for the team's model mix. Report both **$ saved** and **context headroom** (saved tokens ≈ longer sessions before compaction/limits — often the bigger productivity win). When asked for a team rollup, collect each machine's `rtk gain --all --format json` and aggregate; RTK has no central server by design.
+To turn this into an ROI statement: `tokens_saved × blended input-token price` for the team's model mix. Report both **$ saved** and **context headroom** (saved tokens ≈ longer sessions before compaction/limits — often the bigger productivity win). When asked for a team rollup, collect each machine's `rtk gain --all --format json` and aggregate; RTK has no central server by design. For Claude Code specifically, `rtk cc-economics` compares spending (ccusage) against savings (rtk) in one view — useful for management-ready ROI charts. For a comparable per-machine baseline before rollout, use the companion `rtk-audit` skill.
 
 ## Task 2 — Find missed savings
 
@@ -55,6 +55,8 @@ Triage `discover` output by `frequency × output size`. Remedies, in order:
 1. Built-in filter exists but hook missed it → check hook health (`rtk init --show`, restart agent).
 2. No built-in filter, generic shape → wrap: `rtk test <cmd>` (failures only), `rtk err <cmd>` (errors only), `rtk summary <cmd>` (heuristic summary), `rtk proxy <cmd>` (passthrough + tracking).
 3. No built-in filter, recurring + high-volume → write a custom filter (Task 4).
+
+`rtk learn` is a related probe: it mines Claude Code error history for recurring CLI corrections and (with `-w/--write-rules`) can emit `.claude/rules/cli-corrections.md`. Use it when `discover` shows commands that fail-and-retry in loops — those are both missed savings and a correction signal.
 
 ## Task 3 — Troubleshoot "RTK broke / hid something"
 
@@ -70,7 +72,7 @@ Work this ladder top-down; prefer the least-destructive fix:
 | Need an audit trail of what the hook rewrote | `RTK_HOOK_AUDIT=1` |
 | Native Windows: no automatic filtering | Expected — use WSL for hooks, or ensure rules/skills tell agent to prefix `rtk` on every command |
 
-Remember the structural limits before blaming a filter: the hook only covers **shell/Bash tool calls** — built-in Read/Grep/Glob and MCP tool outputs never pass through RTK. On native Windows, hooks do not auto-rewrite at all.
+Remember the structural limits before blaming a filter: the hook only covers **shell/Bash tool calls** — built-in Read/Grep/Glob and MCP tool outputs never pass through RTK, so prefer shell `rg` / `cat` / `find` or `rtk read` / `rtk grep` / `rtk find` for those paths. On native Windows, hooks do not auto-rewrite at all.
 
 ## Task 4 — Author custom per-repo filters
 
@@ -80,12 +82,14 @@ Custom filters exist at two scopes — mirror the adoption scopes:
 
 This is the highest-leverage operation at ECI: niche toolchains (BBj/MarkSystems build and test output, proprietary CLIs) have no built-in coverage, so their savings are 0% until a filter exists.
 
+Schema (0.43.x): `[filters.<name>]` with `match_command` (regex) + action fields (`strip_lines_matching`, `keep_lines_matching`, `replace`, `max_lines`, `tail_lines`, `on_empty`, …) and `[[tests.<name>]]` inline cases — NOT the legacy `[[filter]]` shape. Lookup priority: `.rtk/filters.toml` → `~/.config/rtk/filters.toml` → built-ins → passthrough (first match wins; a same-named project filter shadows the built-in and warns).
+
 Process:
 1. **Fetch the authoritative DSL reference first** — https://github.com/rtk-ai/rtk/blob/master/src/filters/README.md — and follow its current syntax exactly. The DSL evolves between versions; do not write filter TOML from memory.
 2. Capture 2-3 **real raw output samples** of the target command (success + failure cases).
 3. Decide what the *agent* actually needs from that output (usually: what changed, what failed, where). Everything else is filterable noise.
-4. Write the filter, then validate by running the command through rtk and comparing: signal preserved? failure detail still identifiable (or recoverable via tee)?
-5. Commit `.rtk/filters.toml` with a short comment naming the command, expected savings, and the samples used.
+4. Write the filter with an inline `[[tests.<name>]]` case, then validate with `rtk verify` (and by running the command through rtk): signal preserved? failure detail still identifiable (or recoverable via tee)?
+5. Commit `.rtk/filters.toml` with a short comment naming the command, expected savings, and the samples used; run `rtk trust` in the repo so the 0.43.x security gate honors it (`rtk untrust` revokes, `rtk trust --list` audits). CI gate: `rtk verify --require-all` fails if any filter lacks inline tests.
 
 Safety rule for filters: when in doubt, keep failure-path information and cut success-path verbosity. A filter that hides a passing test costs nothing; a filter that hides a failing assertion costs trust.
 
